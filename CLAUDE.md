@@ -13,3 +13,11 @@ Webサイト／Webアプリ用のリポジトリ。使う技術はまだ決ま�
 - 開発サーバー起動: 未定
 - テスト: 未定
 - ビルド: 未定
+
+## Codex（ChatGPT）との連携
+Claude が設計・指示役、Codex が実装・レビュー・調査の実行役。
+- クラウドでは「WEB」環境を使う（OpenAIへの通信許可と Codex の自動インストール済み）。
+- セッション開始時に `codex login status` を確認する。未ログインなら `codex login --device-auth` をバックグラウンドで起動し、表示されたURLとコードをユーザーに伝える。
+- 調査・実装を頼む: `codex exec --skip-git-repo-check "依頼内容"`（書き込みを許すときは `--sandbox workspace-write`）
+- レビューを頼む: `codex review`
+- Claude と Codex に同じファイルを同時に編集させない。Codex の結果は Claude が確認してからユーザーに要約する。

@@ -14,7 +14,10 @@
       "Bash(npm run:*)",
       "Bash(npm test:*)",
       "Bash(npx:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(codex exec:*)",
+      "Bash(codex review:*)",
+      "Bash(codex login status:*)"
     ],
     "deny": [
       "Read(./.env)",
