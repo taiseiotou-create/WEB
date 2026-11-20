@@ -116,6 +116,7 @@ main { position: relative; z-index: 1; padding-inline: calc(var(--rail) + var(--
 /* ============ ファーストビュー ============ */
 .hero { position: relative; min-height: max(100svh, 640px); max-width: 1180px; margin: 0 auto; }
 .kana { position: absolute; inset: 0; pointer-events: none; }
+.k, .dot { pointer-events: auto; } /* 文字と点だけはマウスに反応させる */
 .k {
   position: absolute; font-family: var(--mincho); font-weight: 500;
   font-size: clamp(4.2rem, 10vw, 10rem); line-height: 1; will-change: transform;
@@ -128,6 +129,44 @@ main { position: relative; z-index: 1; padding-inline: calc(var(--rail) + var(--
   position: absolute; right: -0.28em; bottom: 0.02em;
   width: .2em; height: .2em; border-radius: 50%; background: var(--accent);
 }
+
+/* ---- マウスを乗せたときの動き ---- */
+/* 文字：カーソルに少し引き寄せられる（--mx, --my はJSで設定） */
+.k-in {
+  display: inline-block;
+  transform: translate(var(--mx, 0px), var(--my, 0px));
+  transition: transform .9s cubic-bezier(.2, 1.6, .4, 1), color .4s, -webkit-text-stroke-color .4s;
+  -webkit-text-stroke: 1.5px transparent;
+}
+.k.is-hover .k-in { transition: transform .25s ease-out, color .4s, -webkit-text-stroke-color .4s; }
+/* 乗せた瞬間に「ぷるん」と弾み、中抜き（輪郭線だけ）になる */
+.k.is-hover .k-in { color: transparent; -webkit-text-stroke-color: var(--ink); }
+.k.is-jelly .k-in { animation: jelly .7s cubic-bezier(.3, .7, .4, 1); }
+@keyframes jelly {
+  0%   { scale: 1 1; }
+  25%  { scale: 1.18 .84; }
+  45%  { scale: .88 1.14; }
+  65%  { scale: 1.06 .95; }
+  85%  { scale: .98 1.02; }
+  100% { scale: 1 1; }
+}
+/* 点：ぴょんと跳ねて大きくなり、波紋が広がる */
+.dot { cursor: pointer; transition: scale .4s cubic-bezier(.2, 1.8, .4, 1); }
+.dot:hover { scale: 1.6; }
+.dot.is-hop { animation: hop .6s cubic-bezier(.3, .7, .4, 1); }
+@keyframes hop {
+  0% { translate: 0 0; } 35% { translate: 0 -0.5em; } 60% { translate: 0 0; } 78% { translate: 0 -0.12em; } 100% { translate: 0 0; }
+}
+.dot::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  border: 2px solid var(--accent); opacity: 0;
+}
+.dot.is-hop::after { animation: ripple .9s ease-out; }
+@keyframes ripple { from { transform: scale(1); opacity: .8; } to { transform: scale(4.5); opacity: 0; } }
+/* 動きを止めているときは、中抜きの変化だけにする */
+.motion-paused .k-in { transform: none !important; animation: none !important; }
+.motion-paused .dot { animation: none !important; }
+.motion-paused .dot::after { animation: none !important; }
 @media (max-width: 760px) {
   .k1 { top: 4%;  right: 0; }
   .k2 { top: 36%; right: 0; }

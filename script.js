@@ -186,6 +186,7 @@ const toggle = document.getElementById("motion-toggle");
 let userPaused = false;
 const isPaused = () => userPaused || motionQuery.matches;
 const applyPause = () => {
+  document.documentElement.classList.toggle("motion-paused", isPaused());
   toggle.setAttribute("aria-pressed", String(userPaused));
   toggle.textContent = userPaused ? "動きを再開" : "動きを止める";
   if (isPaused()) resetParallax(); else onScroll();
@@ -230,3 +231,36 @@ window.addEventListener("scroll", onScroll, { passive: true });
 toggle.addEventListener("click", () => { userPaused = !userPaused; applyPause(); });
 motionQuery.addEventListener("change", applyPause);
 applyPause();
+
+// 6) 「つ・た・わ・る」と朱色の点に、マウスを乗せたときの動き
+for (const k of kana) {
+  const inner = k.querySelector(".k-in");
+  k.addEventListener("pointerenter", () => {
+    k.classList.add("is-hover");
+    if (isPaused()) return;
+    k.classList.remove("is-jelly");
+    void k.offsetWidth;           // アニメーションを最初から再生し直す
+    k.classList.add("is-jelly");
+  });
+  // カーソルの方へ少し引き寄せる（文字の中心からのずれの25%だけ動く）
+  k.addEventListener("pointermove", (e) => {
+    if (isPaused()) return;
+    const r = inner.getBoundingClientRect();
+    inner.style.setProperty("--mx", `${(e.clientX - (r.left + r.width / 2)) * 0.25}px`);
+    inner.style.setProperty("--my", `${(e.clientY - (r.top + r.height / 2)) * 0.25}px`);
+  });
+  k.addEventListener("pointerleave", () => {
+    k.classList.remove("is-hover");
+    inner.style.setProperty("--mx", "0px");   // バネのように元の位置へ戻る
+    inner.style.setProperty("--my", "0px");
+  });
+  k.addEventListener("animationend", () => k.classList.remove("is-jelly"));
+}
+const dot = document.querySelector(".dot");
+dot.addEventListener("pointerenter", () => {
+  if (isPaused()) return;
+  dot.classList.remove("is-hop");
+  void dot.offsetWidth;
+  dot.classList.add("is-hop");
+});
+dot.addEventListener("animationend", (e) => { if (e.target === dot && e.animationName === "hop") dot.classList.remove("is-hop"); });
