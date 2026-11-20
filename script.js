@@ -106,13 +106,14 @@ function artFor(work, i) {
 // 作品カードを並べる
 const grid = document.getElementById("grid");
 grid.innerHTML = works.map((w, i) => `
-  <li class="${w.wide ? "wide" : ""}" data-category="${w.category}">
+  <li class="${w.wide ? "wide" : ""} rv" data-category="${w.category}">
     <button class="card" data-index="${i}" aria-haspopup="dialog">
       <div class="card-art" aria-hidden="true">${artFor(w, i)}</div>
       <div class="card-meta">
         <span class="card-title">${w.title}</span>
-        <span class="card-cat">${w.year} · ${w.label}</span>
+        <span class="card-cat">( ${w.year} — ${w.label} )</span>
       </div>
+      <span class="card-more" aria-hidden="true">詳しく見る ( → )</span>
     </button>
   </li>`).join("");
 
@@ -128,7 +129,7 @@ document.querySelectorAll(".filter").forEach((btn) => {
     let shown = 0;
     grid.querySelectorAll("li").forEach((li) => {
       li.hidden = f !== "all" && li.dataset.category !== f;
-      if (!li.hidden) shown++;
+      if (!li.hidden) { shown++; li.classList.add("is-in"); }
     });
     // 画面読み上げソフト向けに表示件数を伝える
     document.getElementById("count").textContent = `${shown}件の作品を表示中`;
@@ -143,7 +144,7 @@ grid.addEventListener("click", (e) => {
   const i = Number(card.dataset.index);
   const w = works[i];
   document.getElementById("modal-art").innerHTML = artFor(w, i);
-  document.getElementById("modal-cat").textContent = `${w.label} — ${w.year}`;
+  document.getElementById("modal-cat").textContent = `( ${w.year} — ${w.label} )`;
   document.getElementById("modal-role").textContent = w.role;
   document.getElementById("modal-point").textContent = w.point;
   document.getElementById("modal-title").textContent = w.title;
@@ -151,72 +152,81 @@ grid.addEventListener("click", (e) => {
   modal.showModal();
 });
 document.getElementById("modal-close").addEventListener("click", () => modal.close());
-// 背景（黒い部分）をクリックしても閉じる
+// 背景をクリックしても閉じる
 modal.addEventListener("click", (e) => { if (e.target === modal) modal.close(); });
 
 document.getElementById("year").textContent = new Date().getFullYear();
 
+// 右の縦帯に今日の日付を表示（例: ( Nov. 20th, 2026 )）
+(() => {
+  const d = new Date();
+  const m = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."][d.getMonth()];
+  const n = d.getDate();
+  const suf = n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th";
+  document.getElementById("date").textContent = `( ${m} ${n}${suf}, ${d.getFullYear()} )`;
+})();
+
 // ============================
-// ファーストビューの動き
+// 動き
 // ============================
 const hero = document.querySelector(".hero");
 
-// 1) 読み込み後に登場アニメーションを開始
+// 1) 読み込み後に「つ・た・わ・る」の登場アニメーションを開始
 requestAnimationFrame(() => requestAnimationFrame(() => hero.classList.add("is-ready")));
 
-// 2) 動きの一時停止（ボタン、または端末の「動きを減らす」設定）
+// 2) スクロールで要素が見えたら、ふわっと表示
+const io = new IntersectionObserver((entries) => {
+  for (const e of entries) if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); }
+}, { rootMargin: "0px 0px -10% 0px" });
+document.querySelectorAll(".sec .rv, .grid .rv").forEach((el) => io.observe(el));
+
+// 3) 動きの一時停止（ボタン、または端末の「動きを減らす」設定）
 const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 const toggle = document.getElementById("motion-toggle");
 let userPaused = false;
 const isPaused = () => userPaused || motionQuery.matches;
 const applyPause = () => {
-  hero.classList.toggle("is-paused", isPaused());
   toggle.setAttribute("aria-pressed", String(userPaused));
   toggle.textContent = userPaused ? "動きを再開" : "動きを止める";
+  if (isPaused()) resetParallax(); else onScroll();
 };
-toggle.addEventListener("click", () => { userPaused = !userPaused; applyPause(); });
-motionQuery.addEventListener("change", applyPause);
-applyPause();
 
-// 3) 朱色のフレーズを数秒ごとに切り替え
+// 4) 朱色のフレーズを数秒ごとに切り替え（ぼかしながら入れ替える）
 const phrases = ["伝わるかたち", "選ばれる理由", "心が動く仕掛け"];
 const rotator = document.getElementById("rotator");
 let p = 0;
 setInterval(() => {
-  if (isPaused() || !heroVisible) return;
+  if (isPaused() || scrollY > innerHeight) return;
   rotator.classList.add("is-out");
   setTimeout(() => {
+    if (isPaused()) { rotator.classList.remove("is-out"); return; } // 途中で止めたら切り替えない
     p = (p + 1) % phrases.length;
     rotator.textContent = phrases[p];
     rotator.classList.remove("is-out");
-    rotator.classList.add("is-in");
-    rotator.offsetWidth; // 位置をリセットしてから下から入れる
-    rotator.classList.remove("is-in");
-  }, 450);
-}, 3200);
+  }, 500);
+}, 3600);
 
-// 4) マウスとスクロールに合わせて図形を動かす（奥行き＝data-depth）
-//    FVが画面に見えている間だけ計算する
-let heroVisible = true;
-const shapes = [...document.querySelectorAll(".shape")];
-let mx = 0, my = 0, cx = 0, cy = 0, running = false;
-window.addEventListener("pointermove", (e) => {
-  mx = e.clientX / innerWidth - 0.5;
-  my = e.clientY / innerHeight - 0.5;
-});
-const tick = () => {
-  if (!heroVisible || isPaused()) { running = false; return; }
-  cx += (mx - cx) * 0.06; // ゆっくり追いかける
-  cy += (my - cy) * 0.06;
-  const sy = Math.min(scrollY, innerHeight);
-  for (const s of shapes) {
-    const d = Number(s.dataset.depth);
-    s.style.transform = `translate3d(${cx * d * -40}px, ${cy * d * -40 - sy * d * 0.15}px, 0)`;
+// 5) スクロールに合わせて、大きな文字と背景の文字をゆっくり動かす
+const kana = [...document.querySelectorAll(".k")];
+const ghostTop = document.getElementById("ghost-top");
+const ghostBottom = document.getElementById("ghost-bottom");
+let ticking = false;
+function render() {
+  ticking = false;
+  if (isPaused()) return;
+  const y = scrollY;
+  if (y < innerHeight * 1.2) {
+    for (const k of kana) k.style.setProperty("--py", `${-y * Number(k.dataset.speed)}px`);
   }
-  requestAnimationFrame(tick);
-};
-const start = () => { if (!running && heroVisible && !isPaused()) { running = true; tick(); } };
-new IntersectionObserver(([entry]) => { heroVisible = entry.isIntersecting; start(); }).observe(hero);
-toggle.addEventListener("click", start);
-motionQuery.addEventListener("change", start);
-start();
+  ghostTop.style.transform = `translateX(${-y * 0.08}px)`;     // 上の文字は左へ
+  ghostBottom.style.transform = `translateX(${y * 0.05}px)`;   // 下の文字は右へ
+}
+function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(render); } }
+function resetParallax() {
+  for (const k of kana) k.style.setProperty("--py", "0px");
+  ghostTop.style.transform = ghostBottom.style.transform = "";
+}
+window.addEventListener("scroll", onScroll, { passive: true });
+toggle.addEventListener("click", () => { userPaused = !userPaused; applyPause(); });
+motionQuery.addEventListener("change", applyPause);
+applyPause();

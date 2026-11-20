@@ -7,7 +7,7 @@
   <meta name="description" content="鹿児島を拠点に、広告・紙媒体・Web・ロゴの企画とデザインを手がける川上剛志のポートフォリオ">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Shippori+Mincho:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script>
     // JSが動く環境だけ登場アニメーションを使う。3秒たっても始まらなければ通常表示に戻す
@@ -20,59 +20,65 @@
 <body>
   <a class="skip" href="#main">本文へスキップ</a>
 
-  <header class="site-header">
-    <a class="logo" href="#top">Kawakami&nbsp;Tsuyoshi<span class="dot">.</span></a>
+  <!-- 背景に敷く、巨大な薄い文字（飾り） -->
+  <div class="ghost" aria-hidden="true">
+    <span class="ghost-top" id="ghost-top">KAWAKAMI</span>
+    <span class="ghost-bottom" id="ghost-bottom">TSUYOSHI</span>
+  </div>
+
+  <!-- 左の縦帯：名前とメニュー -->
+  <header class="rail rail-left">
+    <a class="logo" href="#top">KAWAKAMI TSUYOSHI</a>
     <nav aria-label="メインメニュー">
       <ul>
-        <li><a href="#works">Works</a></li>
-        <li><a href="#about">About</a></li>
-        <li><a href="#contact">Contact</a></li>
+        <li><a href="#works">作品</a></li>
+        <li><a href="#about">略歴</a></li>
+        <li><a href="#contact">連絡</a></li>
       </ul>
     </nav>
   </header>
 
+  <!-- 右の縦帯：日付と、動きの停止ボタン -->
+  <aside class="rail rail-right" aria-label="補足">
+    <p class="date" id="date">( Nov. 20th, 2026 )</p>
+    <p class="place">鹿児島 — Graphic Designer</p>
+    <button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="false">動きを止める</button>
+  </aside>
+
   <main id="main">
-    <!-- ヒーロー：最初に目に入るエリア -->
+    <!-- ファーストビュー -->
     <section class="hero" id="top">
-      <!-- 背景で浮遊する図形（飾りなので読み上げ対象外） -->
-      <div class="hero-shapes" aria-hidden="true">
-        <span class="shape s1" data-depth="0.5"><i></i></span>
-        <span class="shape s2" data-depth="1.3"><i></i></span>
-        <span class="shape s3" data-depth="0.9"><i></i></span>
-        <span class="shape s4" data-depth="1.6"><i></i></span>
-        <span class="shape s5" data-depth="0.7"><i></i></span>
-        <span class="shape s6" data-depth="2"><i></i></span>
+      <!-- 画面に散らばる大きな縦書きの文字（飾りなので読み上げ対象外） -->
+      <div class="kana" aria-hidden="true">
+        <span class="k k1" style="--i:0" data-speed="0.25">つ</span>
+        <span class="k k2" style="--i:1" data-speed="0.55">た</span>
+        <span class="k k3" style="--i:2" data-speed="0.4">わ</span>
+        <span class="k k4" style="--i:3" data-speed="0.7">る<i class="dot"></i></span>
       </div>
 
-      <div class="hero-inner">
-        <p class="eyebrow reveal" style="--d:0">Graphic Designer / Art Director — Kagoshima</p>
-        <h1 class="hero-title" aria-label="届く言葉と、伝わるかたち、選ばれる理由、心が動く仕掛けを。">
-          <span class="line" aria-hidden="true"><span class="line-in" style="--d:1">届く言葉と、</span></span>
-          <span class="line" aria-hidden="true"><span class="line-in" style="--d:2"><em class="rotator" id="rotator">伝わるかたち</em>を。</span></span>
-        </h1>
-        <p class="hero-lead reveal" style="--d:4">
-          川上 剛志（かわかみ つよし）。鹿児島を拠点に、<br class="pc">
-          広告・紙媒体・Webサイト・ロゴを、企画とコピーから一緒につくります。
+      <h1 class="hero-title rv" style="--d:4" aria-label="届く言葉と、伝わるかたち、選ばれる理由、心が動く仕掛けを。">
+        <span aria-hidden="true">届く言葉と、</span>
+        <span aria-hidden="true"><em class="rotator" id="rotator">伝わるかたち</em>を。</span>
+      </h1>
+
+      <div class="hero-foot rv" style="--d:6">
+        <p class="hero-lead">
+          川上 剛志（かわかみ つよし）<br>
+          鹿児島を拠点に、広告・紙媒体・Webサイト・ロゴを、企画とコピーから一緒につくります。
         </p>
-        <a class="btn reveal" style="--d:5" href="#works">作品を見る <span aria-hidden="true">↓</span></a>
-      </div>
-
-      <button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="false">動きを止める</button>
-
-      <!-- 得意分野が横に流れる帯 -->
-      <div class="marquee" aria-hidden="true">
-        <div class="marquee-track">
-          <span>Advertising</span><span>Editorial</span><span>Branding</span><span>Web Design</span><span>Copywriting</span><span>Art Direction</span>
-          <span>Advertising</span><span>Editorial</span><span>Branding</span><span>Web Design</span><span>Copywriting</span><span>Art Direction</span>
-        </div>
+        <a class="arrow-link" href="#works">作品を見る <span aria-hidden="true">( → )</span></a>
       </div>
     </section>
 
     <!-- 作品一覧：データは script.js の works 配列で管理 -->
-    <section class="works" id="works" aria-labelledby="works-title">
-      <div class="section-head">
-        <h2 id="works-title"><span class="num">01</span>Selected Works</h2>
-        <div class="filters" role="group" aria-label="カテゴリで絞り込み">
+    <section class="sec" id="works" aria-labelledby="works-title">
+      <header class="sec-head rv">
+        <p class="sec-num">( 01 )</p>
+        <h2 class="sec-title" id="works-title">作品</h2>
+        <p class="sec-en">Selected Works</p>
+      </header>
+      <div class="sec-body">
+        <div class="filters rv" role="group" aria-label="カテゴリで絞り込み">
           <button class="filter is-active" data-filter="all" aria-pressed="true">すべて</button>
           <button class="filter" data-filter="ad" aria-pressed="false">Advertising</button>
           <button class="filter" data-filter="editorial" aria-pressed="false">Editorial</button>
@@ -80,22 +86,26 @@
           <button class="filter" data-filter="web" aria-pressed="false">Web</button>
           <button class="filter" data-filter="personal" aria-pressed="false">Personal</button>
         </div>
+        <p class="sr-only" id="count" role="status"></p>
+        <ul class="grid" id="grid"></ul>
+        <p class="works-note">※ 守秘のため、クライアント名は伏せて業種と内容のみを掲載しています。画像は準備中のためイメージ図形を表示しています。</p>
       </div>
-      <p class="sr-only" id="count" role="status"></p>
-      <ul class="grid" id="grid"></ul>
-      <p class="works-note">※ 守秘のため、クライアント名は伏せて業種と内容のみを掲載しています。画像は準備中のためイメージ図形を表示しています。</p>
     </section>
 
     <!-- 自己紹介 -->
-    <section class="about" id="about" aria-labelledby="about-title">
-      <h2 id="about-title"><span class="num">02</span>About</h2>
-      <div class="about-body">
-        <p class="about-lead">
+    <section class="sec" id="about" aria-labelledby="about-title">
+      <header class="sec-head rv">
+        <p class="sec-num">( 02 )</p>
+        <h2 class="sec-title" id="about-title">わたしについて</h2>
+        <p class="sec-en">About</p>
+      </header>
+      <div class="sec-body about-body">
+        <p class="about-lead rv">
           鹿児島を拠点に活動するグラフィックデザイナー／アートディレクターです。
           出版社・広告代理店で、求人誌、新聞広告、ポスター、Web、テレビ・ラジオCMの企画制作に携わってきました。
           現在はフリーランスとして、紙の販促物からWebサイト、ランディングページ、採用広告まで制作しています。
         </p>
-        <dl class="skills">
+        <dl class="skills rv">
           <div><dt>Career</dt><dd>出版社・広告代理店のグループ会社で、デザイナー、アートディレクター、バイスマネージャーを担当。最大7人のチームの指導・育成を担当。現在フリーランス</dd></div>
           <div><dt>Services</dt><dd>広告・販促物 / パンフレット・冊子 / ロゴ / Webサイト・LPの構成とデザイン / コピー・企画書 / 制作進行</dd></div>
           <div><dt>Tools</dt><dd>Illustrator / Photoshop / InDesign / Figma / WordPress / STUDIO / Shopify / BASE / Keynote / Canva</dd></div>
@@ -106,21 +116,27 @@
     </section>
 
     <!-- 連絡先 -->
-    <section class="contact" id="contact" aria-labelledby="contact-title">
-      <h2 id="contact-title"><span class="num">03</span>Contact</h2>
-      <p class="contact-lead">お仕事のご相談、お気軽にどうぞ。</p>
-      <p class="contact-mail">Coming soon</p>
-      <p class="contact-note">お問い合わせ窓口は準備中です。</p>
+    <section class="sec" id="contact" aria-labelledby="contact-title">
+      <header class="sec-head rv">
+        <p class="sec-num">( 03 )</p>
+        <h2 class="sec-title" id="contact-title">お問い合わせ</h2>
+        <p class="sec-en">Contact</p>
+      </header>
+      <div class="sec-body">
+        <p class="contact-lead rv">お仕事のご相談、お気軽にどうぞ。</p>
+        <p class="contact-big rv">Coming soon<span class="dot-accent" aria-hidden="true"></span></p>
+        <p class="contact-note rv">お問い合わせ窓口は準備中です。</p>
+      </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <p>&copy; <span id="year"></span> Kawakami Tsuyoshi</p>
+    <p>COPYRIGHT &copy; <span id="year"></span> KAWAKAMI TSUYOSHI ALL RIGHTS RESERVED</p>
   </footer>
 
   <!-- 作品の詳細ダイアログ -->
   <dialog class="modal" id="modal" aria-labelledby="modal-title">
-    <button class="modal-close" id="modal-close" aria-label="閉じる">×</button>
+    <button class="modal-close" id="modal-close" aria-label="閉じる">( × )</button>
     <div class="modal-art" id="modal-art"></div>
     <div class="modal-text">
       <p class="modal-cat" id="modal-cat"></p>
