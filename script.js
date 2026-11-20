@@ -201,6 +201,7 @@ const copyCol1 = copy.children[0];
 const copyCol2 = copy.children[1];
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const splitChars = (text) => [...text].map((c) => `<span class="ch">${c}</span>`).join("");
+const CHAR_STEP = 200;      // 1文字ごとの間隔（ミリ秒）。大きくするとゆっくり読ませる
 let p = 0;
 let copyRun = 0;            // 停止・再開のたびに番号を変えて、古いループを止める
 
@@ -223,8 +224,14 @@ async function playCopy(firstDelay) {
     await wait(delay);
     delay = 50;
     if (run !== copyRun) return;
-    chars.forEach((ch, i) => { ch.style.transitionDelay = `${i * 85}ms`; ch.classList.add("on"); });
-    await wait(chars.length * 85 + 900 + 3000);           // 表示し終わってから約3秒見せる
+    // 読むペースで1文字ずつ表示。「、」のあとは少し間を置く
+    let t = 0;
+    chars.forEach((ch) => {
+      ch.style.transitionDelay = `${t}ms`;
+      ch.classList.add("on");
+      t += ch.textContent === "、" ? CHAR_STEP + 500 : CHAR_STEP;
+    });
+    await wait(t + 600 + 3000);                             // 表示し終わってから約3秒見せる
     if (run !== copyRun) return;
     if (scrollY > innerHeight) { await wait(1000); continue; } // FVが見えていない間は待つ
     chars.forEach((ch) => { ch.style.transitionDelay = "0ms"; ch.classList.remove("on"); });

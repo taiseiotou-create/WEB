@@ -185,7 +185,7 @@ main { position: relative; z-index: 1; padding-inline: calc(var(--rail) + var(--
 /* コピーを1文字ずつ表示する（JSで1文字ずつ <span class="ch"> に分ける） */
 .ch {
   display: inline-block; opacity: 0; filter: blur(6px); transform: translateY(-0.35em);
-  transition: opacity .7s ease, filter .7s ease, transform .9s cubic-bezier(.2, .8, .2, 1);
+  transition: opacity .45s ease, filter .45s ease, transform .6s cubic-bezier(.2, .8, .2, 1);
 }
 .ch.on { opacity: 1; filter: none; transform: none; }
 .copy-static .ch { transition: none; }
