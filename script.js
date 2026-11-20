@@ -189,23 +189,49 @@ const applyPause = () => {
   document.documentElement.classList.toggle("motion-paused", isPaused());
   toggle.setAttribute("aria-pressed", String(userPaused));
   toggle.textContent = userPaused ? "動きを再開" : "動きを止める";
-  if (isPaused()) resetParallax(); else onScroll();
+  if (isPaused()) { resetParallax(); showCopyStatic(); }
+  else { onScroll(); if (copy.classList.contains("copy-static") || copyRun === 0) playCopy(copyRun === 0 ? 900 : 300); }
 };
 
-// 4) 朱色のフレーズを数秒ごとに切り替え（ぼかしながら入れ替える）
+// 4) コピーを毎回1文字目から表示し直す
+//    「届く言葉と、」＋朱色のフレーズ＋「を。」を1文字ずつ表示 → しばらく見せる → 全体を消す → 次のフレーズで繰り返し
 const phrases = ["伝わるかたち", "選ばれる理由", "心が動く仕掛け"];
-const rotator = document.getElementById("rotator");
+const copy = document.getElementById("copy");
+const copyCol1 = copy.children[0];
+const copyCol2 = copy.children[1];
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const splitChars = (text) => [...text].map((c) => `<span class="ch">${c}</span>`).join("");
 let p = 0;
-setInterval(() => {
-  if (isPaused() || scrollY > innerHeight) return;
-  rotator.classList.add("is-out");
-  setTimeout(() => {
-    if (isPaused()) { rotator.classList.remove("is-out"); return; } // 途中で止めたら切り替えない
+let copyRun = 0;            // 停止・再開のたびに番号を変えて、古いループを止める
+
+function buildCopy() {
+  copyCol1.innerHTML = splitChars("届く言葉と、");
+  copyCol2.innerHTML = `<em class="rotator">${splitChars(phrases[p])}</em>${splitChars("を。")}`;
+  return [...copy.querySelectorAll(".ch")];
+}
+function showCopyStatic() {   // 動きを止めているときは、全文をそのまま表示
+  copyRun++;
+  copy.classList.add("copy-static");
+  buildCopy().forEach((ch) => ch.classList.add("on"));
+}
+async function playCopy(firstDelay) {
+  const run = ++copyRun;
+  copy.classList.remove("copy-static");
+  let delay = firstDelay;
+  while (run === copyRun) {
+    const chars = buildCopy();   // 先に文字を隠した状態で並べてから表示を始める
+    await wait(delay);
+    delay = 50;
+    if (run !== copyRun) return;
+    chars.forEach((ch, i) => { ch.style.transitionDelay = `${i * 85}ms`; ch.classList.add("on"); });
+    await wait(chars.length * 85 + 900 + 3000);           // 表示し終わってから約3秒見せる
+    if (run !== copyRun) return;
+    if (scrollY > innerHeight) { await wait(1000); continue; } // FVが見えていない間は待つ
+    chars.forEach((ch) => { ch.style.transitionDelay = "0ms"; ch.classList.remove("on"); });
+    await wait(900);                                        // 全体が消えるのを待つ
     p = (p + 1) % phrases.length;
-    rotator.textContent = phrases[p];
-    rotator.classList.remove("is-out");
-  }, 500);
-}, 3600);
+  }
+}
 
 // 5) スクロールに合わせて、大きな文字と背景の文字をゆっくり動かす
 const kana = [...document.querySelectorAll(".k")];

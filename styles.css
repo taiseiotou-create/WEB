@@ -181,8 +181,14 @@ main { position: relative; z-index: 1; padding-inline: calc(var(--rail) + var(--
   line-height: 2.2; letter-spacing: 0.3em;
 }
 .hero-title > span { display: block; }
-.hero-title em { font-style: normal; color: var(--accent-text); transition: opacity .5s, filter .5s; }
-.rotator.is-out { opacity: 0; filter: blur(6px); }
+.hero-title em { font-style: normal; color: var(--accent-text); }
+/* コピーを1文字ずつ表示する（JSで1文字ずつ <span class="ch"> に分ける） */
+.ch {
+  display: inline-block; opacity: 0; filter: blur(6px); transform: translateY(-0.35em);
+  transition: opacity .7s ease, filter .7s ease, transform .9s cubic-bezier(.2, .8, .2, 1);
+}
+.ch.on { opacity: 1; filter: none; transform: none; }
+.copy-static .ch { transition: none; }
 @media (max-width: 760px) { .hero-title { top: 4%; } }
 
 .hero-foot { position: absolute; left: 0; bottom: 9%; max-width: 30em; }
