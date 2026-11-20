@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your Name — Design Portfolio</title>
+  <meta name="description" content="グラフィック・ブランディング・UIを手がけるデザイナーのポートフォリオ">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">本文へスキップ</a>
+
+  <header class="site-header">
+    <a class="logo" href="#top">Your&nbsp;Name<span class="dot">.</span></a>
+    <nav aria-label="メインメニュー">
+      <ul>
+        <li><a href="#works">Works</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- ヒーロー：最初に目に入るエリア -->
+    <section class="hero" id="top">
+      <p class="eyebrow">Graphic &amp; Brand Designer — Tokyo</p>
+      <h1 class="hero-title">
+        かたちに、<br>
+        <em>伝わる理由</em>を。
+      </h1>
+      <p class="hero-lead">
+        ブランディング、エディトリアル、UIデザインを中心に、<br class="pc">
+        言葉にしづらい想いを「見てわかる」かたちに整えています。
+      </p>
+      <a class="btn" href="#works">作品を見る <span aria-hidden="true">↓</span></a>
+    </section>
+
+    <!-- 作品一覧：データは script.js の works 配列で管理 -->
+    <section class="works" id="works" aria-labelledby="works-title">
+      <div class="section-head">
+        <h2 id="works-title"><span class="num">01</span>Selected Works</h2>
+        <div class="filters" role="group" aria-label="カテゴリで絞り込み">
+          <button class="filter is-active" data-filter="all" aria-pressed="true">すべて</button>
+          <button class="filter" data-filter="branding" aria-pressed="false">Branding</button>
+          <button class="filter" data-filter="editorial" aria-pressed="false">Editorial</button>
+          <button class="filter" data-filter="ui" aria-pressed="false">UI</button>
+        </div>
+      </div>
+      <p class="sr-only" id="count" role="status"></p>
+      <ul class="grid" id="grid"></ul>
+    </section>
+
+    <!-- 自己紹介 -->
+    <section class="about" id="about" aria-labelledby="about-title">
+      <h2 id="about-title"><span class="num">02</span>About</h2>
+      <div class="about-body">
+        <p class="about-lead">
+          美術大学でグラフィックを学び、制作会社を経て独立。
+          「整っている」だけでなく「覚えてもらえる」デザインを大切にしています。
+        </p>
+        <dl class="skills">
+          <div><dt>Services</dt><dd>ロゴ・VI設計 / パッケージ / 冊子・ポスター / Webサイト・アプリUI</dd></div>
+          <div><dt>Tools</dt><dd>Figma / Illustrator / Photoshop / InDesign</dd></div>
+          <div><dt>Awards</dt><dd>〇〇デザイン賞 入選（2025）</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- 連絡先 -->
+    <section class="contact" id="contact" aria-labelledby="contact-title">
+      <h2 id="contact-title"><span class="num">03</span>Contact</h2>
+      <p class="contact-lead">お仕事のご相談、お気軽にどうぞ。</p>
+      <a class="contact-mail" href="mailto:hello@example.com">hello@example.com</a>
+      <ul class="sns">
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">Behance</a></li>
+        <li><a href="#">X</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; <span id="year"></span> Your Name</p>
+  </footer>
+
+  <!-- 作品の詳細ダイアログ -->
+  <dialog class="modal" id="modal" aria-labelledby="modal-title">
+    <button class="modal-close" id="modal-close" aria-label="閉じる">×</button>
+    <div class="modal-art" id="modal-art"></div>
+    <div class="modal-text">
+      <p class="modal-cat" id="modal-cat"></p>
+      <h3 id="modal-title"></h3>
+      <p id="modal-desc"></p>
+    </div>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>

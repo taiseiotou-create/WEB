@@ -1,0 +1,229 @@
+/* ============================
+   色・文字などの基本設定（ここを変えると全体の雰囲気が変わる）
+   ============================ */
+:root {
+  --bg: #f4f1ea;          /* 生成りの紙のような背景 */
+  --ink: #1b1a17;         /* 文字色 */
+  --muted: #6b675e;       /* 補足の文字色 */
+  --line: #d9d3c6;        /* 罫線 */
+  --accent: #e2482d;      /* 差し色（朱色） */
+  --accent-text: #b5321b; /* 小さい文字用の濃い朱色（読みやすさのため） */
+  --card: #ebe6db;
+  --serif: "Fraunces", "Zen Kaku Gothic New", serif;
+  --sans: "Zen Kaku Gothic New", system-ui, sans-serif;
+  --gutter: clamp(16px, 5vw, 64px);
+  --max: 1200px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141412;
+    --ink: #efebe2;
+    --muted: #a19c90;
+    --line: #2e2c28;
+    --card: #1e1d1a;
+    --accent: #ff6a4d;
+    --accent-text: #ff7a5f;
+  }
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 80px; } /* 固定ヘッダーの下に隠れないように */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+img { max-width: 100%; display: block; }
+
+.skip {
+  position: absolute; left: -999px; top: 0;
+  background: var(--ink); color: var(--bg); padding: 8px 16px;
+}
+.skip:focus { left: 16px; z-index: 100; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* ============ ヘッダー ============ */
+.site-header {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px var(--gutter);
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap; gap: 8px 24px;
+}
+.logo {
+  font-family: var(--serif); font-weight: 600; font-size: 1.25rem;
+  text-decoration: none; letter-spacing: -0.01em;
+}
+.dot { color: var(--accent); }
+.site-header ul { display: flex; gap: clamp(16px, 3vw, 36px); list-style: none; margin: 0; padding: 0; }
+.site-header nav a {
+  text-decoration: none; font-size: 0.9rem; letter-spacing: 0.04em;
+  background: linear-gradient(var(--accent), var(--accent)) 0 100% / 0 1px no-repeat;
+  transition: background-size .3s;
+}
+.site-header nav a:hover { background-size: 100% 1px; }
+
+/* ============ 共通セクション ============ */
+main > section {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: clamp(72px, 12vw, 140px) var(--gutter);
+}
+h2 {
+  font-family: var(--serif); font-weight: 400;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  margin: 0; letter-spacing: -0.01em;
+  display: flex; align-items: baseline; gap: 14px;
+}
+.num {
+  font-family: var(--sans); font-size: 0.8rem; color: var(--accent-text);
+  letter-spacing: 0.1em;
+}
+
+/* ============ ヒーロー ============ */
+.hero { min-height: calc(100svh - 70px); display: flex; flex-direction: column; justify-content: center; }
+.eyebrow { color: var(--muted); font-size: 0.85rem; letter-spacing: 0.12em; margin: 0 0 24px; }
+.hero-title {
+  font-family: var(--serif); font-weight: 400;
+  font-size: clamp(2.6rem, 9vw, 7rem);
+  line-height: 1.12; margin: 0; letter-spacing: -0.02em;
+}
+.hero-title em { font-style: italic; color: var(--accent); }
+.hero-lead { color: var(--muted); max-width: 36em; margin: 32px 0 40px; }
+.btn {
+  align-self: flex-start;
+  display: inline-flex; gap: 10px; align-items: center;
+  padding: 14px 28px; border: 1px solid var(--ink); border-radius: 999px;
+  text-decoration: none; font-size: 0.9rem;
+  transition: background .25s, color .25s;
+}
+.btn:hover { background: var(--ink); color: var(--bg); }
+
+/* ============ 作品一覧 ============ */
+.section-head {
+  display: flex; flex-wrap: wrap; gap: 20px;
+  justify-content: space-between; align-items: end;
+  margin-bottom: 40px;
+}
+.filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.filter {
+  font: inherit; font-size: 0.85rem; color: var(--ink);
+  background: none; border: 1px solid var(--line); border-radius: 999px;
+  padding: 6px 16px; cursor: pointer; transition: all .2s;
+}
+.filter:hover { border-color: var(--ink); }
+.filter.is-active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.grid {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: clamp(16px, 2.5vw, 32px);
+  grid-template-columns: repeat(12, 1fr);
+}
+/* 雑誌のように大小を混ぜたレイアウト */
+.grid li { grid-column: span 4; }
+.grid li.wide { grid-column: span 8; }
+.grid li[hidden] { display: none; }
+@media (max-width: 860px) {
+  .grid li, .grid li.wide { grid-column: span 6; }
+}
+@media (max-width: 560px) {
+  .grid { grid-template-columns: 1fr; }
+  .grid li, .grid li.wide { grid-column: auto; }
+}
+
+.card {
+  display: block; width: 100%; padding: 0; border: 0; background: none;
+  font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.card-art {
+  aspect-ratio: 4 / 5; border-radius: 6px; overflow: hidden;
+  background: var(--card);
+}
+.wide .card-art { aspect-ratio: 16 / 10; }
+.card-art svg, .card-art img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform .6s cubic-bezier(.2, .7, .2, 1);
+}
+.card:hover .card-art svg, .card:hover .card-art img,
+.card:focus-visible .card-art svg { transform: scale(1.04); }
+.card-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.card-title { font-weight: 500; }
+.card-cat { color: var(--muted); font-size: 0.8rem; letter-spacing: 0.06em; white-space: nowrap; }
+
+/* ============ About ============ */
+.about { display: grid; grid-template-columns: 1fr 2fr; gap: 40px; border-top: 1px solid var(--line); }
+@media (max-width: 760px) { .about { grid-template-columns: 1fr; } }
+.about-lead { font-size: clamp(1.1rem, 2vw, 1.35rem); margin: 0 0 40px; line-height: 1.9; }
+.skills { margin: 0; }
+.skills div {
+  display: grid; grid-template-columns: 120px 1fr; gap: 16px;
+  padding: 16px 0; border-top: 1px solid var(--line);
+}
+.skills dt { color: var(--muted); font-size: 0.85rem; letter-spacing: 0.06em; }
+.skills dd { margin: 0; }
+@media (max-width: 480px) { .skills div { grid-template-columns: 1fr; gap: 4px; } }
+
+/* ============ Contact ============ */
+.contact { border-top: 1px solid var(--line); }
+.contact-lead { color: var(--muted); margin: 24px 0 8px; }
+.contact-mail {
+  display: inline-block;
+  font-family: var(--serif); font-size: clamp(1.8rem, 7vw, 5rem);
+  text-decoration: none; letter-spacing: -0.02em; line-height: 1.2;
+  overflow-wrap: anywhere;
+  background: linear-gradient(var(--accent), var(--accent)) 0 100% / 0 3px no-repeat;
+  transition: background-size .4s;
+}
+.contact-mail:hover { background-size: 100% 3px; }
+.sns { display: flex; gap: 24px; list-style: none; padding: 0; margin: 40px 0 0; }
+.sns a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
+.sns a:hover { color: var(--accent); }
+
+/* ============ フッター ============ */
+.site-footer {
+  padding: 32px var(--gutter); border-top: 1px solid var(--line);
+  color: var(--muted); font-size: 0.8rem; text-align: center;
+}
+
+/* ============ 作品詳細ダイアログ ============ */
+.modal {
+  width: min(920px, calc(100% - 32px)); max-height: calc(100% - 32px);
+  padding: 0; border: 0; border-radius: 10px;
+  background: var(--bg); color: var(--ink);
+}
+.modal::backdrop { background: rgb(0 0 0 / .6); backdrop-filter: blur(4px); }
+.modal-art { aspect-ratio: 16 / 9; background: var(--card); }
+.modal-art svg, .modal-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.modal-text { padding: 28px clamp(20px, 4vw, 40px) 36px; }
+.modal-cat { color: var(--accent-text); font-size: 0.8rem; letter-spacing: 0.1em; margin: 0; }
+.modal h3 { font-family: var(--serif); font-weight: 400; font-size: 1.8rem; margin: 4px 0 12px; }
+.modal-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 40px; height: 40px; border-radius: 50%; border: 0;
+  background: var(--bg); color: var(--ink); font-size: 1.4rem; cursor: pointer;
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+.pc { display: none; }
+@media (min-width: 760px) { .pc { display: inline; } }
