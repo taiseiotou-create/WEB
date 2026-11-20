@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Your Name — Design Portfolio</title>
-  <meta name="description" content="グラフィック・ブランディング・UIを手がけるデザイナーのポートフォリオ">
+  <title>Kawakami Tsuyoshi — Graphic Designer / Art Director</title>
+  <meta name="description" content="鹿児島を拠点に、広告・紙媒体・Web・ロゴの企画とデザインを手がける川上剛志のポートフォリオ">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
   <a class="skip" href="#main">本文へスキップ</a>
 
   <header class="site-header">
-    <a class="logo" href="#top">Your&nbsp;Name<span class="dot">.</span></a>
+    <a class="logo" href="#top">Kawakami&nbsp;Tsuyoshi<span class="dot">.</span></a>
     <nav aria-label="メインメニュー">
       <ul>
         <li><a href="#works">Works</a></li>
@@ -27,14 +27,14 @@
   <main id="main">
     <!-- ヒーロー：最初に目に入るエリア -->
     <section class="hero" id="top">
-      <p class="eyebrow">Graphic &amp; Brand Designer — Tokyo</p>
+      <p class="eyebrow">Graphic Designer / Art Director — Kagoshima</p>
       <h1 class="hero-title">
-        かたちに、<br>
-        <em>伝わる理由</em>を。
+        届く言葉と、<br>
+        <em>伝わるかたち</em>を。
       </h1>
       <p class="hero-lead">
-        ブランディング、エディトリアル、UIデザインを中心に、<br class="pc">
-        言葉にしづらい想いを「見てわかる」かたちに整えています。
+        川上 剛志（かわかみ つよし）。鹿児島を拠点に、<br class="pc">
+        広告・紙媒体・Webサイト・ロゴを、企画とコピーから一緒につくります。
       </p>
       <a class="btn" href="#works">作品を見る <span aria-hidden="true">↓</span></a>
     </section>
@@ -45,13 +45,16 @@
         <h2 id="works-title"><span class="num">01</span>Selected Works</h2>
         <div class="filters" role="group" aria-label="カテゴリで絞り込み">
           <button class="filter is-active" data-filter="all" aria-pressed="true">すべて</button>
-          <button class="filter" data-filter="branding" aria-pressed="false">Branding</button>
+          <button class="filter" data-filter="ad" aria-pressed="false">Advertising</button>
           <button class="filter" data-filter="editorial" aria-pressed="false">Editorial</button>
-          <button class="filter" data-filter="ui" aria-pressed="false">UI</button>
+          <button class="filter" data-filter="branding" aria-pressed="false">Branding</button>
+          <button class="filter" data-filter="web" aria-pressed="false">Web</button>
+          <button class="filter" data-filter="personal" aria-pressed="false">Personal</button>
         </div>
       </div>
       <p class="sr-only" id="count" role="status"></p>
       <ul class="grid" id="grid"></ul>
+      <p class="works-note">※ 守秘のため、クライアント名は伏せて業種と内容のみを掲載しています。画像は準備中のためイメージ図形を表示しています。</p>
     </section>
 
     <!-- 自己紹介 -->
@@ -59,13 +62,16 @@
       <h2 id="about-title"><span class="num">02</span>About</h2>
       <div class="about-body">
         <p class="about-lead">
-          美術大学でグラフィックを学び、制作会社を経て独立。
-          「整っている」だけでなく「覚えてもらえる」デザインを大切にしています。
+          鹿児島を拠点に活動するグラフィックデザイナー／アートディレクターです。
+          出版社・広告代理店で、求人誌、新聞広告、ポスター、Web、テレビ・ラジオCMの企画制作に携わってきました。
+          現在はフリーランスとして、紙の販促物からWebサイト、ランディングページ、採用広告まで制作しています。
         </p>
         <dl class="skills">
-          <div><dt>Services</dt><dd>ロゴ・VI設計 / パッケージ / 冊子・ポスター / Webサイト・アプリUI</dd></div>
-          <div><dt>Tools</dt><dd>Figma / Illustrator / Photoshop / InDesign</dd></div>
-          <div><dt>Awards</dt><dd>〇〇デザイン賞 入選（2025）</dd></div>
+          <div><dt>Career</dt><dd>出版社・広告代理店のグループ会社で、デザイナー、アートディレクター、バイスマネージャーを担当。最大7人のチームの指導・育成を担当。現在フリーランス</dd></div>
+          <div><dt>Services</dt><dd>広告・販促物 / パンフレット・冊子 / ロゴ / Webサイト・LPの構成とデザイン / コピー・企画書 / 制作進行</dd></div>
+          <div><dt>Tools</dt><dd>Illustrator / Photoshop / InDesign / Figma / WordPress / STUDIO / Shopify / BASE / Keynote / Canva</dd></div>
+          <div><dt>AI</dt><dd>ChatGPT・Claude・画像生成を、企画の検討や試作に活用</dd></div>
+          <div><dt>Award</dt><dd>路面電車の車内ジャック広告で、チームとして広告賞を受賞</dd></div>
         </dl>
       </div>
     </section>
@@ -74,17 +80,13 @@
     <section class="contact" id="contact" aria-labelledby="contact-title">
       <h2 id="contact-title"><span class="num">03</span>Contact</h2>
       <p class="contact-lead">お仕事のご相談、お気軽にどうぞ。</p>
-      <a class="contact-mail" href="mailto:hello@example.com">hello@example.com</a>
-      <ul class="sns">
-        <li><a href="#">Instagram</a></li>
-        <li><a href="#">Behance</a></li>
-        <li><a href="#">X</a></li>
-      </ul>
+      <p class="contact-mail">Coming soon</p>
+      <p class="contact-note">お問い合わせ窓口は準備中です。</p>
     </section>
   </main>
 
   <footer class="site-footer">
-    <p>&copy; <span id="year"></span> Your Name</p>
+    <p>&copy; <span id="year"></span> Kawakami Tsuyoshi</p>
   </footer>
 
   <!-- 作品の詳細ダイアログ -->
@@ -95,6 +97,10 @@
       <p class="modal-cat" id="modal-cat"></p>
       <h3 id="modal-title"></h3>
       <p id="modal-desc"></p>
+      <dl class="modal-info">
+        <div><dt>担当</dt><dd id="modal-role"></dd></div>
+        <div><dt>ポイント</dt><dd id="modal-point"></dd></div>
+      </dl>
     </div>
   </dialog>
 

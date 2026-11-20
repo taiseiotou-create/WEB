@@ -137,6 +137,7 @@ h2 {
   grid-template-columns: repeat(12, 1fr);
 }
 /* 雑誌のように大小を混ぜたレイアウト */
+.grid { grid-auto-flow: dense; } /* 絞り込み時もすき間を詰める */
 .grid li { grid-column: span 4; }
 .grid li.wide { grid-column: span 8; }
 .grid li[hidden] { display: none; }
@@ -163,7 +164,7 @@ h2 {
 }
 .card:hover .card-art svg, .card:hover .card-art img,
 .card:focus-visible .card-art svg { transform: scale(1.04); }
-.card-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.card-meta { display: flex; flex-direction: column; gap: 2px; margin-top: 14px; }
 .card-title { font-weight: 500; }
 .card-cat { color: var(--muted); font-size: 0.8rem; letter-spacing: 0.06em; white-space: nowrap; }
 
@@ -192,6 +193,15 @@ h2 {
   transition: background-size .4s;
 }
 .contact-mail:hover { background-size: 100% 3px; }
+.contact-note { color: var(--muted); font-size: 0.9rem; margin: 8px 0 0; }
+.works-note { color: var(--muted); font-size: 0.8rem; margin: 32px 0 0; }
+.modal-info { margin: 20px 0 0; }
+.modal-info div {
+  display: grid; grid-template-columns: 80px 1fr; gap: 12px;
+  padding: 10px 0; border-top: 1px solid var(--line); font-size: 0.92rem;
+}
+.modal-info dt { color: var(--muted); }
+.modal-info dd { margin: 0; }
 .sns { display: flex; gap: 24px; list-style: none; padding: 0; margin: 40px 0 0; }
 .sns a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
 .sns a:hover { color: var(--accent); }
