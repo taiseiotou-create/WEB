@@ -155,3 +155,68 @@ document.getElementById("modal-close").addEventListener("click", () => modal.clo
 modal.addEventListener("click", (e) => { if (e.target === modal) modal.close(); });
 
 document.getElementById("year").textContent = new Date().getFullYear();
+
+// ============================
+// ファーストビューの動き
+// ============================
+const hero = document.querySelector(".hero");
+
+// 1) 読み込み後に登場アニメーションを開始
+requestAnimationFrame(() => requestAnimationFrame(() => hero.classList.add("is-ready")));
+
+// 2) 動きの一時停止（ボタン、または端末の「動きを減らす」設定）
+const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+const toggle = document.getElementById("motion-toggle");
+let userPaused = false;
+const isPaused = () => userPaused || motionQuery.matches;
+const applyPause = () => {
+  hero.classList.toggle("is-paused", isPaused());
+  toggle.setAttribute("aria-pressed", String(userPaused));
+  toggle.textContent = userPaused ? "動きを再開" : "動きを止める";
+};
+toggle.addEventListener("click", () => { userPaused = !userPaused; applyPause(); });
+motionQuery.addEventListener("change", applyPause);
+applyPause();
+
+// 3) 朱色のフレーズを数秒ごとに切り替え
+const phrases = ["伝わるかたち", "選ばれる理由", "心が動く仕掛け"];
+const rotator = document.getElementById("rotator");
+let p = 0;
+setInterval(() => {
+  if (isPaused() || !heroVisible) return;
+  rotator.classList.add("is-out");
+  setTimeout(() => {
+    p = (p + 1) % phrases.length;
+    rotator.textContent = phrases[p];
+    rotator.classList.remove("is-out");
+    rotator.classList.add("is-in");
+    rotator.offsetWidth; // 位置をリセットしてから下から入れる
+    rotator.classList.remove("is-in");
+  }, 450);
+}, 3200);
+
+// 4) マウスとスクロールに合わせて図形を動かす（奥行き＝data-depth）
+//    FVが画面に見えている間だけ計算する
+let heroVisible = true;
+const shapes = [...document.querySelectorAll(".shape")];
+let mx = 0, my = 0, cx = 0, cy = 0, running = false;
+window.addEventListener("pointermove", (e) => {
+  mx = e.clientX / innerWidth - 0.5;
+  my = e.clientY / innerHeight - 0.5;
+});
+const tick = () => {
+  if (!heroVisible || isPaused()) { running = false; return; }
+  cx += (mx - cx) * 0.06; // ゆっくり追いかける
+  cy += (my - cy) * 0.06;
+  const sy = Math.min(scrollY, innerHeight);
+  for (const s of shapes) {
+    const d = Number(s.dataset.depth);
+    s.style.transform = `translate3d(${cx * d * -40}px, ${cy * d * -40 - sy * d * 0.15}px, 0)`;
+  }
+  requestAnimationFrame(tick);
+};
+const start = () => { if (!running && heroVisible && !isPaused()) { running = true; tick(); } };
+new IntersectionObserver(([entry]) => { heroVisible = entry.isIntersecting; start(); }).observe(hero);
+toggle.addEventListener("click", start);
+motionQuery.addEventListener("change", start);
+start();

@@ -97,16 +97,116 @@ h2 {
   letter-spacing: 0.1em;
 }
 
-/* ============ ヒーロー ============ */
-.hero { min-height: calc(100svh - 70px); display: flex; flex-direction: column; justify-content: center; }
+/* ============ ヒーロー（ファーストビュー） ============ */
+.hero {
+  position: relative; overflow: hidden;
+  max-width: none !important;               /* 画面幅いっぱいに広げる */
+  min-height: calc(100svh - 70px);
+  display: flex; flex-direction: column; justify-content: center;
+  padding-inline: max(var(--gutter), calc((100% - var(--max)) / 2 + var(--gutter))) !important;
+  padding-bottom: 120px !important;
+}
+.hero-inner { position: relative; z-index: 1; }
 .eyebrow { color: var(--muted); font-size: 0.85rem; letter-spacing: 0.12em; margin: 0 0 24px; }
 .hero-title {
   font-family: var(--serif); font-weight: 400;
-  font-size: clamp(2.6rem, 9vw, 7rem);
-  line-height: 1.12; margin: 0; letter-spacing: -0.02em;
+  font-size: clamp(1.75rem, 8.6vw, 7rem);
+  line-height: 1.15; margin: 0; letter-spacing: -0.02em;
 }
-.hero-title em { font-style: italic; color: var(--accent); }
+.hero-title .line { display: block; overflow: hidden; white-space: nowrap; padding-bottom: .06em; }
+.hero-title .line-in { display: inline-block; }
+.hero-title em { font-style: italic; color: var(--accent); display: inline-block; }
 .hero-lead { color: var(--muted); max-width: 36em; margin: 32px 0 40px; }
+
+/* --- 登場アニメーション（JSが動くときだけ、最初は隠しておく） --- */
+.js .hero .line-in { transform: translateY(105%); }
+.js .hero .reveal { opacity: 0; transform: translateY(16px); }
+.hero .line-in, .hero .reveal {
+  transition: transform 1s cubic-bezier(.2, .8, .2, 1), opacity 1s ease;
+  transition-delay: calc(var(--d, 0) * 120ms + 150ms);
+}
+.js .hero.is-ready .line-in { transform: none; }
+.js .hero.is-ready .reveal { opacity: 1; transform: none; }
+
+/* --- 朱色フレーズの切り替え --- */
+.rotator { transition: transform .45s cubic-bezier(.6, 0, .4, 1), opacity .45s; }
+.rotator.is-out { transform: translateY(-60%); opacity: 0; }
+.rotator.is-in { transform: translateY(60%); opacity: 0; transition: none; }
+
+/* --- 浮遊する図形 --- */
+.hero-shapes { position: absolute; inset: 0; pointer-events: none; }
+.shape { position: absolute; display: block; will-change: transform; }
+.shape i {
+  display: block; width: 100%; height: 100%;
+  opacity: 0; transform: scale(.4);
+  transition: opacity 1.2s ease, transform 1.4s cubic-bezier(.2, .8, .2, 1);
+  transition-delay: calc(var(--n) * 90ms + 300ms);
+}
+.hero.is-ready .shape i { opacity: 1; transform: none; animation: float var(--t, 9s) ease-in-out infinite alternate; animation-delay: 1.6s; }
+html:not(.js) .shape i { opacity: 1; transform: none; }
+@keyframes float {
+  from { transform: translate(0, 0) rotate(0deg); }
+  to   { transform: translate(var(--fx, 12px), var(--fy, -18px)) rotate(var(--fr, 8deg)); }
+}
+/* 図形ひとつずつの形・色・位置 */
+.s1 { --n:0; width: 30vmin; height: 30vmin; top: 12%; right: 7%; }
+.s1 i { background: var(--accent); border-radius: 50%; --t: 11s; --fx: -14px; --fy: 20px; --fr: 0deg; }
+.s2 { --n:1; width: 13vmin; height: 13vmin; top: 6%; right: 30%; }
+.s2 i { background: #f2c14e; --t: 8s; --fr: 24deg; }
+.s3 { --n:2; width: 17vmin; height: 15vmin; top: 62%; right: 22%; }
+.s3 i { background: #3d5afe; clip-path: polygon(50% 0, 100% 100%, 0 100%); --t: 10s; --fx: 16px; --fr: -14deg; }
+.s4 { --n:3; width: 24vmin; height: 4vmin; top: 72%; right: 5%; }
+.s4 i { background: var(--ink); --t: 7s; --fx: -20px; --fy: 6px; --fr: -6deg; }
+.s5 { --n:4; width: 18vmin; height: 18vmin; top: 44%; right: 1%; }
+.s5 i { border: 2.2vmin solid #2f5d50; border-radius: 50%; --t: 12s; --fy: -26px; }
+.s6 { --n:5; width: 5vmin; height: 5vmin; top: 10%; right: 50%; }
+.s6 i { background: var(--accent); border-radius: 50%; --t: 6s; --fx: 10px; --fy: 14px; }
+
+/* スマホ：図形は画面の上側に集め、文字と重ならないようにする */
+@media (max-width: 760px) {
+  .hero { justify-content: flex-end; padding-bottom: 110px !important; }
+  .hero-shapes { bottom: auto; height: 42%; }
+  .s1 { width: 34vw; height: 34vw; top: 10%; right: 6%; }
+  .s2 { width: 13vw; height: 13vw; top: 66%; right: 46%; }
+  .s3 { width: 18vw; height: 16vw; top: 20%; right: 50%; }
+  .s4 { width: 28vw; height: 4.5vw; top: 82%; right: 4%; }
+  .s5 { width: 20vw; height: 20vw; top: 48%; right: 0; }
+  .s5 i { border-width: 2.6vw; }
+  .s6 { width: 6vw; height: 6vw; top: 8%; right: 74%; }
+}
+
+/* --- 流れる帯 --- */
+.marquee {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 1;
+  border-top: 1px solid var(--line); overflow: hidden;
+  padding: 18px 0;
+}
+.marquee-track { display: flex; width: max-content; animation: marquee 32s linear infinite; }
+.marquee span {
+  font-family: var(--serif); font-style: italic;
+  font-size: clamp(1.2rem, 2.4vw, 1.8rem); white-space: nowrap;
+  padding: 0 28px; display: inline-flex; align-items: center; gap: 56px;
+}
+.marquee span::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); margin-left: 28px; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* --- 動きの一時停止 --- */
+.motion-toggle {
+  position: absolute; z-index: 2; right: var(--gutter); bottom: 84px;
+  font: inherit; font-size: 0.75rem; letter-spacing: 0.06em; color: var(--muted);
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer;
+}
+.motion-toggle:hover { color: var(--ink); border-color: var(--ink); }
+.hero.is-paused .shape i, .hero.is-paused .marquee-track { animation-play-state: paused; }
+
+/* 動きを減らす設定の人には、最初から表示して止めておく */
+@media (prefers-reduced-motion: reduce) {
+  .js .hero .line-in, .js .hero .reveal, .shape i { opacity: 1 !important; transform: none !important; }
+  .marquee-track { animation: none; }
+  .motion-toggle { display: none; }
+}
+
 .btn {
   align-self: flex-start;
   display: inline-flex; gap: 10px; align-items: center;

@@ -9,6 +9,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // JSが動く環境だけ登場アニメーションを使う。3秒たっても始まらなければ通常表示に戻す
+    document.documentElement.classList.add("js");
+    setTimeout(function () {
+      if (!document.querySelector(".hero.is-ready")) document.documentElement.classList.remove("js");
+    }, 3000);
+  </script>
 </head>
 <body>
   <a class="skip" href="#main">本文へスキップ</a>
@@ -27,16 +34,38 @@
   <main id="main">
     <!-- ヒーロー：最初に目に入るエリア -->
     <section class="hero" id="top">
-      <p class="eyebrow">Graphic Designer / Art Director — Kagoshima</p>
-      <h1 class="hero-title">
-        届く言葉と、<br>
-        <em>伝わるかたち</em>を。
-      </h1>
-      <p class="hero-lead">
-        川上 剛志（かわかみ つよし）。鹿児島を拠点に、<br class="pc">
-        広告・紙媒体・Webサイト・ロゴを、企画とコピーから一緒につくります。
-      </p>
-      <a class="btn" href="#works">作品を見る <span aria-hidden="true">↓</span></a>
+      <!-- 背景で浮遊する図形（飾りなので読み上げ対象外） -->
+      <div class="hero-shapes" aria-hidden="true">
+        <span class="shape s1" data-depth="0.5"><i></i></span>
+        <span class="shape s2" data-depth="1.3"><i></i></span>
+        <span class="shape s3" data-depth="0.9"><i></i></span>
+        <span class="shape s4" data-depth="1.6"><i></i></span>
+        <span class="shape s5" data-depth="0.7"><i></i></span>
+        <span class="shape s6" data-depth="2"><i></i></span>
+      </div>
+
+      <div class="hero-inner">
+        <p class="eyebrow reveal" style="--d:0">Graphic Designer / Art Director — Kagoshima</p>
+        <h1 class="hero-title" aria-label="届く言葉と、伝わるかたち、選ばれる理由、心が動く仕掛けを。">
+          <span class="line" aria-hidden="true"><span class="line-in" style="--d:1">届く言葉と、</span></span>
+          <span class="line" aria-hidden="true"><span class="line-in" style="--d:2"><em class="rotator" id="rotator">伝わるかたち</em>を。</span></span>
+        </h1>
+        <p class="hero-lead reveal" style="--d:4">
+          川上 剛志（かわかみ つよし）。鹿児島を拠点に、<br class="pc">
+          広告・紙媒体・Webサイト・ロゴを、企画とコピーから一緒につくります。
+        </p>
+        <a class="btn reveal" style="--d:5" href="#works">作品を見る <span aria-hidden="true">↓</span></a>
+      </div>
+
+      <button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="false">動きを止める</button>
+
+      <!-- 得意分野が横に流れる帯 -->
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+          <span>Advertising</span><span>Editorial</span><span>Branding</span><span>Web Design</span><span>Copywriting</span><span>Art Direction</span>
+          <span>Advertising</span><span>Editorial</span><span>Branding</span><span>Web Design</span><span>Copywriting</span><span>Art Direction</span>
+        </div>
+      </div>
     </section>
 
     <!-- 作品一覧：データは script.js の works 配列で管理 -->
