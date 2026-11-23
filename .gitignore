@@ -7,3 +7,6 @@ build/
 !.env.example
 .DS_Store
 .claude/settings.local.json
+
+# 非公開作品の元データ（暗号化前）。絶対にコミットしない
+private/

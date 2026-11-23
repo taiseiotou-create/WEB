@@ -32,6 +32,7 @@
     <nav aria-label="メインメニュー">
       <ul>
         <li><a href="#works">作品</a></li>
+        <li><a href="#client">実績</a></li>
         <li><a href="#about">略歴</a></li>
         <li><a href="#contact">連絡</a></li>
       </ul>
@@ -80,37 +81,62 @@
       <div class="sec-body">
         <div class="filters rv" role="group" aria-label="カテゴリで絞り込み">
           <button class="filter is-active" data-filter="all" aria-pressed="true">すべて</button>
-          <button class="filter" data-filter="ad" aria-pressed="false">Advertising</button>
-          <button class="filter" data-filter="editorial" aria-pressed="false">Editorial</button>
-          <button class="filter" data-filter="branding" aria-pressed="false">Branding</button>
           <button class="filter" data-filter="web" aria-pressed="false">Web</button>
+          <button class="filter" data-filter="branding" aria-pressed="false">Branding</button>
           <button class="filter" data-filter="personal" aria-pressed="false">Personal</button>
         </div>
         <p class="sr-only" id="count" role="status"></p>
         <ul class="grid" id="grid"></ul>
-        <p class="works-note">※ 守秘のため、クライアント名は伏せて業種と内容のみを掲載しています。画像は準備中のためイメージ図形を表示しています。</p>
+        <p class="works-note">※ ここでは自主制作・個人で手がけたサイトを公開しています。会社員・業務委託としての実績は、次の「実務の実績」でログインしてご覧いただけます。画像を準備中の作品はイメージ図形を表示しています。</p>
+      </div>
+    </section>
+
+    <!-- 実務の実績：ログインした人だけ見られる（データは private-works.js に暗号化して保存） -->
+    <section class="sec" id="client" aria-labelledby="client-title">
+      <header class="sec-head rv">
+        <p class="sec-num">( 02 )</p>
+        <h2 class="sec-title" id="client-title">実務の実績</h2>
+        <p class="sec-en">Client Works</p>
+      </header>
+      <div class="sec-body">
+        <p class="client-lead rv">広告代理店・マイナビ・アイドマ・ムスビでの制作実績は、守秘のためログインした方にだけ公開しています。<br>ご覧になりたい方は、お伝えしたIDとパスワードを入力してください。</p>
+        <form class="login rv" id="login" autocomplete="on">
+          <label>ID<input type="text" id="login-id" name="username" autocomplete="username" required></label>
+          <label>パスワード<input type="password" id="login-pw" name="password" autocomplete="current-password" required></label>
+          <button type="submit" class="login-btn" id="login-btn">ログイン <span aria-hidden="true">( → )</span></button>
+          <p class="login-msg" id="login-msg" role="status" aria-live="polite"></p>
+        </form>
+        <div class="private" id="private" hidden>
+          <div class="private-bar">
+            <p class="private-note" id="private-note"></p>
+            <button type="button" class="logout" id="logout">ログアウト</button>
+          </div>
+          <div class="private-groups" id="private-groups"></div>
+        </div>
       </div>
     </section>
 
     <!-- 自己紹介 -->
     <section class="sec" id="about" aria-labelledby="about-title">
       <header class="sec-head rv">
-        <p class="sec-num">( 02 )</p>
+        <p class="sec-num">( 03 )</p>
         <h2 class="sec-title" id="about-title">わたしについて</h2>
         <p class="sec-en">About</p>
       </header>
       <div class="sec-body about-body">
         <p class="about-lead rv">
           鹿児島を拠点に活動するグラフィックデザイナー／アートディレクターです。
-          出版社・広告代理店で、求人誌、新聞広告、ポスター、Web、テレビ・ラジオCMの企画制作に携わってきました。
-          現在はフリーランスとして、紙の販促物からWebサイト、ランディングページ、採用広告まで制作しています。
+          広告代理店とマイナビで、求人誌、新聞広告、ポスター、Web、テレビ・ラジオCMの企画制作に携わってきました。
+          現在はフリーランスとして、アイドマ・ムスビなどの制作に参加しながら、紙の販促物からWebサイト、ランディングページ、採用広告まで制作しています。
+          自主制作では、HSVCJ関連のサイトや「てんぷれや」のサイトなど、AIも活用しながらWebサイトづくりに取り組んでいます。
         </p>
         <dl class="skills rv">
-          <div><dt>Career</dt><dd>出版社・広告代理店のグループ会社で、デザイナー、アートディレクター、バイスマネージャーを担当。最大7人のチームの指導・育成を担当。現在フリーランス</dd></div>
+          <div><dt>Career</dt><dd>広告代理店（グループ会社）でデザイナー、アートディレクター、バイスマネージャーを担当し、最大7人のチームの指導・育成を経験。マイナビで紙媒体の制作に従事。現在フリーランスとして、アイドマ・ムスビなどの制作に参加</dd></div>
+          <div><dt>Approach</dt><dd>「誰に、何を、どう感じてほしいか」を言葉にしてから形にします。コピーと構成を先に固めることで、紙でもWebでもぶれないデザインをつくります</dd></div>
           <div><dt>Services</dt><dd>広告・販促物 / パンフレット・冊子 / ロゴ / Webサイト・LPの構成とデザイン / コピー・企画書 / 制作進行</dd></div>
           <div><dt>Tools</dt><dd>Illustrator / Photoshop / InDesign / Figma / WordPress / STUDIO / Shopify / BASE / Keynote / Canva</dd></div>
           <div><dt>AI</dt><dd>ChatGPT・Claude・画像生成を、企画の検討や試作に活用</dd></div>
-          <div><dt>Award</dt><dd>路面電車の車内ジャック広告で、チームとして広告賞を受賞</dd></div>
+          <div><dt>Award</dt><dd>広告代理店時代に、チームとして広告賞を受賞（詳しくは「実務の実績」に掲載）</dd></div>
         </dl>
       </div>
     </section>
@@ -118,7 +144,7 @@
     <!-- 連絡先 -->
     <section class="sec" id="contact" aria-labelledby="contact-title">
       <header class="sec-head rv">
-        <p class="sec-num">( 03 )</p>
+        <p class="sec-num">( 04 )</p>
         <h2 class="sec-title" id="contact-title">お問い合わせ</h2>
         <p class="sec-en">Contact</p>
       </header>
@@ -146,9 +172,11 @@
         <div><dt>担当</dt><dd id="modal-role"></dd></div>
         <div><dt>ポイント</dt><dd id="modal-point"></dd></div>
       </dl>
+      <a class="modal-link" id="modal-link" href="#" target="_blank" rel="noopener" hidden>サイトを見る <span aria-hidden="true">( ↗ )</span></a>
     </div>
   </dialog>
 
+  <script src="private-works.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

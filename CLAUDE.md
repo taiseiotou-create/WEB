@@ -13,6 +13,11 @@
 - ファイル: `index.html`（構成）/ `styles.css`（見た目。色は先頭の `:root` で一括管理）/ `script.js`（作品データ `works` 配列と動き）
 - 確認方法: `index.html` をブラウザで開く。Playwright でスクリーンショットを撮って見た目を確認する
 - 作品の追加・変更は `script.js` の `works` 配列を編集する（`image` に画像パス、`wide: true` で横長カード）
+- `works` 配列は**公開作品だけ**（自主制作・個人のサイト）。`url` に公開URLを入れると詳細に「サイトを見る」リンクが出る
+- 会社員・業務委託の実績（広告代理店・マイナビ・アイドマ・ムスビ）は**非公開**。パスワードで暗号化した `private-works.js` に入っていて、サイトの「実務の実績」でIDとパスワードを入れた人だけが読める
+  - 編集手順: ① `PORTFOLIO_ID=… PORTFOLIO_PASSWORD=… node tools/private-works.mjs decrypt` で `private/works.json` に戻す → ② 編集 → ③ 同じ書き方で `encrypt` → ④ `private-works.js` をコミット
+  - `private/` フォルダ（暗号化前の元データ）とID・パスワードは**絶対にコミットしない**（`.gitignore` 済み）
+  - パスワードを変えたいときは、①で復号したあと新しいパスワードで③を実行する
 
 ## Codex（ChatGPT）との連携
 Claude が設計・指示役、Codex が実装・レビュー・調査の実行役。

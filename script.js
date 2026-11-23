@@ -1,80 +1,34 @@
 // ============================
 // 作品データ：ここを書き換えれば作品一覧が変わる
-//   ※ 公開リポジトリのため、クライアント名は書かない（業種と内容のみ）
+//   ※ ここは誰でも見られる「公開」作品だけ。会社での実績は private/works.json に書いて
+//     tools/private-works.mjs で暗号化する（README は CLAUDE.md を参照）
+//   url:   作品サイトのURL。あれば詳細画面に「サイトを見る」リンクが出る
 //   image: 画像ファイルのパス（例: "images/work1.jpg"）。空なら仮のグラフィックを表示
 //   wide:  true にすると横長の大きいカードになる
 // ============================
 const works = [
-  { title: "路面電車・車内ジャック広告", category: "ad", label: "Advertising", year: "代理店時代", wide: true,
-    desc: "鹿児島の路面電車の車内を丸ごと使った広告ジャックを提案。乗った瞬間に世界観に包まれる空間づくりを目指しました。",
-    role: "企画提案、キャッチコピー（24案）。チームで制作",
-    point: "チームで広告賞を受賞（本人談。正式な賞名は確認中）",
-    palette: ["#e2482d", "#f2c14e", "#1b1a17"] },
-  { title: "自治体向けコンペ・広告企画", category: "ad", label: "Advertising", year: "代理店時代",
-    desc: "官公庁・自治体向けの提案で、課題を整理して企画書とビジュアルを制作。テレビ・ラジオCMの企画とディレクションも担当しました。",
-    role: "課題整理、企画書、ビジュアル、プレゼン",
-    point: "伝えたい相手と課題から逆算した企画づくり",
-    palette: ["#2f5d50", "#e8dcc4", "#d97a3a"] },
-  { title: "啓発ポスター・グッズ", category: "ad", label: "Advertising", year: "代理店時代",
-    desc: "啓発活動のシンボルカラーを使ったポスターやグッズを制作。色そのものがメッセージになるよう設計しました。",
-    role: "ポスター・グッズのデザイン",
-    point: "テーマカラーを軸に、媒体をまたいで統一感を出す",
-    palette: ["#d94f8a", "#f6e3ea", "#1b1a17"] },
-  { title: "求人誌・タウン情報誌・新聞広告", category: "editorial", label: "Editorial", year: "グループ在籍時",
-    desc: "地域の求人誌やタウン情報誌、新聞広告、チラシ、ポスターなど、紙媒体の制作を幅広く経験しました。",
-    role: "誌面・広告のデザイン",
-    point: "限られた紙面で、読む人が迷わない情報整理",
-    palette: ["#3d5afe", "#bfd7ff", "#f4f1ea"] },
-  { title: "3ブランドの共通ロゴ", category: "branding", label: "Branding", year: "2026",
-    desc: "関連する3つのブランドのロゴ案を、共通の花のモチーフで検討。店舗ブランドの案は花を3輪にして遊び心を加えました。",
-    role: "ロゴ案の方向づけ、選定、修正ディレクション",
-    point: "共通モチーフと、ブランドごとの見分けやすさの両立",
-    palette: ["#7a8f6b", "#efe6d2", "#c9a227"] },
-  { title: "植物モチーフのシンボルロゴ", category: "branding", label: "Branding", year: "2026",
-    desc: "枝と葉を組み合わせたシンボルマーク。やさしさの中にも弱く見えない力強さが出るよう調整しました。",
-    role: "案の選定、形の調整ディレクション、モノクロ展開の指示",
-    point: "まず形の美しさを見せ、白黒・使用イメージは分けて提案",
-    palette: ["#2f5d50", "#f4f1ea", "#7a8f6b"] },
-  { title: "製造業・営業職の採用ページ", category: "web", label: "Web", year: "2026", wide: true,
-    desc: "営業職を募集する製造業の採用ページ。PC・スマートフォンの画面と、ボタンなどの操作時の見え方を含むデザイン制作に関わりました。",
-    role: "PC・SP・操作状態のデザイン制作（共同制作）",
-    point: "働くイメージが湧く構成と、応募までの導線",
-    palette: ["#1b1a17", "#f2c14e", "#e2482d"] },
-  { title: "フランチャイズ募集LP", category: "web", label: "Web", year: "2026",
-    desc: "フランチャイズ加盟店を募集するランディングページ（1ページで完結する宣伝用ページ）の制作に関わりました。",
-    role: "デザインと実装（HTML・CSS・JavaScript）の制作、データ引き継ぎ（共同制作）",
-    point: "加盟を検討する人が知りたい順に情報を並べる",
-    palette: ["#e2482d", "#f4f1ea", "#2f5d50"] },
-  { title: "格闘技イベントのLP・メインビジュアル", category: "web", label: "Web", year: "2026",
-    desc: "格闘技イベントのランディングページ。PC・スマートフォン向けのデザインと、メインビジュアルの調整に関わりました。",
-    role: "PC・SPデザイン、メインビジュアルの改訂（共同制作）",
-    point: "スマホでも迫力が伝わるファーストビュー",
-    palette: ["#1b1a17", "#e2482d", "#efebe2"] },
-  { title: "物流会社のA3会社案内", category: "editorial", label: "Editorial", year: "2026",
-    desc: "A3・4ページの会社案内の改訂に参加。ページをめくる流れに沿って、全体の構図を見直しました。",
-    role: "4ページを通した構図の再設計（共同制作）",
-    point: "1枚ずつではなく、冊子全体のリズムで設計",
-    palette: ["#3d5afe", "#f4f1ea", "#f2c14e"] },
-  { title: "スクロール連動サイトの試作", category: "web", label: "Web", year: "2026", wide: true,
-    desc: "スクロールに合わせてシーンが切り替わるWebサイトのリニューアル試作。ホイールを1回まわすと1シーン進み、次の場面にぴたっと止まる動きを検討しました。",
-    role: "動きの方向づけ、メニュー調整、提案案の選定",
-    point: "動きで世界観を伝えつつ、操作に迷わせない",
-    palette: ["#bfd7ff", "#1b1a17", "#e2482d"] },
-  { title: "窓サービスのパンフレット・業界別販促物", category: "editorial", label: "Editorial", year: "2026",
-    desc: "窓まわりのサービスを紹介する12ページのパンフレットと、業界ごとに内容を変えたA4両面の販促物の制作に関わりました。",
-    role: "パンフレット・営業ツールの制作に参加",
-    point: "読む人の業界に合わせて、事例と訴求を出し分け",
-    palette: ["#7fb7d9", "#f4f1ea", "#2f5d50"] },
-  { title: "靴ブランドのガレージ風ネットショップ", category: "web", label: "Web", year: "2026",
-    desc: "靴の写真をガレージ風の背景と影で統一して見せる、ネットショップの見せ方を検討しました。",
-    role: "見せ方の方向性、写真の補正方針、ショップ構成の検討",
-    point: "補正の強さを調整し、商品の素材感を残す",
-    palette: ["#5c5348", "#d9cdb8", "#c9a227"] },
-  { title: "非営利団体のキャラクター展開", category: "branding", label: "Branding", year: "2026",
-    desc: "アヒルのキャラクターを使った、映画ポスター風の壁紙などの展開を企画。キャラクターごとの役割が絵から伝わるよう方向づけました。",
-    role: "世界観・配色・構図の方向づけ",
+  { title: "HSVCJ関連サイト「HSと暮らす」", category: "web", label: "Web", year: "2026", wide: true,
+    url: "",  // ← 公開URLが決まったらここに入れる（例: "https://example.com/"）
+    desc: "「ひとりから、つながりへ」をテーマにしたWebページ。ひとりで抱えていた人が、声に出すことで波紋のようにつながり、「今日はどう？」「わかるよ」「話してくれて、ありがとう」という言葉に背中を押されて一歩ずつ進んでいく様子を、やわらかなイラストとアニメーションで描きました。オープニング映像版も制作しています。",
+    role: "企画、構成、コピー、イラストの演出、アニメーション、実装（AIと協働）",
+    point: "重くなりがちなテーマを、丸みのある書体とやさしい色、ゆっくりした動きで、そっと寄り添うトーンに",
+    palette: ["#7fbfe6", "#fdf6f9", "#f3a6c0"] },
+  { title: "てんぷれや 関連サイト", category: "web", label: "Web", year: "2026",
+    url: "",  // ← 公開URLが決まったらここに入れる
+    desc: "「てんぷれや」のWebサイト制作。（詳しい内容は準備中です）",
+    role: "企画、デザイン、実装",
+    point: "（準備中）",
+    palette: ["#c9a227", "#f4f1ea", "#1b1a17"] },
+  { title: "アヒルのキャラクター展開", category: "branding", label: "Branding", year: "2026",
+    desc: "アヒルのキャラクターを使った、映画ポスター風の壁紙などの展開を自主制作。キャラクターごとの役割が絵から伝わるよう、世界観・配色・構図を方向づけました。",
+    role: "キャラクター設定、世界観・配色・構図の方向づけ",
     point: "元の配色を守りながら、スマホ・PCなど媒体別の案を検討",
     palette: ["#1f3a6b", "#f2c14e", "#f4f1ea"] },
+  { title: "このポートフォリオサイト", category: "web", label: "Web", year: "2026", wide: true,
+    desc: "いま見ているこのサイト。縦書きの見出しと「つ・た・わ・る」の大きな文字で、言葉とデザインを両方つくる仕事のスタンスを表現しました。キャッチコピーは読むペースで1文字ずつ現れ、文字にマウスを乗せると弾むように動きます。会社での実績は、パスワードで暗号化してログインした人だけが読める仕組みにしています。",
+    role: "企画、コピー、デザイン、実装（HTML・CSS・JavaScript。AIと協働）",
+    point: "動きで印象を残しつつ「動きを止める」ボタンや読み上げ対応など、誰でも見やすい作りに",
+    palette: ["#1b1a17", "#fafafa", "#e2482d"] },
   { title: "グラフィック個展", category: "personal", label: "Personal", year: "学生時代",
     desc: "人工臓器のような形を抽象化したグラフィックを制作し、個展で展示。来場者の反応から、デザインで発信することの責任を意識するきっかけになりました。",
     role: "作品制作、個展の開催",
@@ -93,29 +47,34 @@ function placeholderArt(work, i) {
     `<circle cx="150" cy="200" r="100" fill="${a}"/><circle cx="250" cy="300" r="100" fill="${c}" opacity=".8"/>`,
     `<path d="M40 400 Q200 40 360 400" stroke="${a}" stroke-width="44" fill="none"/><circle cx="200" cy="140" r="34" fill="${c}"/>`,
   ];
-  return `<svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${work.title} のイメージ">
+  return `<svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${esc(work.title)} のイメージ">
     <rect width="400" height="500" fill="${b}"/>${shapes[i % shapes.length]}</svg>`;
 }
 
 function artFor(work, i) {
   return work.image
-    ? `<img src="${work.image}" alt="${work.title}" loading="lazy">`
+    ? `<img src="${esc(work.image)}" alt="${esc(work.title)}" loading="lazy">`
     : placeholderArt(work, i);
 }
 
-// 作品カードを並べる
-const grid = document.getElementById("grid");
-grid.innerHTML = works.map((w, i) => `
-  <li class="${w.wide ? "wide" : ""} rv" data-category="${w.category}">
-    <button class="card" data-index="${i}" aria-haspopup="dialog">
-      <div class="card-art" aria-hidden="true">${artFor(w, i)}</div>
+// 作品カードを並べる（公開作品と、ログイン後の非公開作品で共通）
+const cardsHTML = (list, offset = 0, extra = "") => list.map((w, i) => `
+  <li class="${w.wide ? "wide" : ""} rv ${extra}" data-category="${w.category}">
+    <button class="card" data-index="${i + offset}" aria-haspopup="dialog">
+      <div class="card-art" aria-hidden="true">${artFor(w, i + offset)}</div>
       <div class="card-meta">
-        <span class="card-title">${w.title}</span>
-        <span class="card-cat">( ${w.year} — ${w.label} )</span>
+        <span class="card-title">${esc(w.title)}</span>
+        <span class="card-cat">( ${esc(w.year)} — ${esc(w.label)} )</span>
       </div>
       <span class="card-more" aria-hidden="true">詳しく見る ( → )</span>
     </button>
   </li>`).join("");
+function esc(t) {   // 文字をそのまま表示する（HTMLとして解釈させない）
+  return String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+let shownWorks = works;   // 詳細ダイアログで参照する作品の一覧（ログイン後は非公開作品も足す）
+const grid = document.getElementById("grid");
+grid.innerHTML = cardsHTML(works);
 
 // カテゴリで絞り込み
 document.querySelectorAll(".filter").forEach((btn) => {
@@ -138,22 +97,114 @@ document.querySelectorAll(".filter").forEach((btn) => {
 
 // 作品をクリックすると詳細を表示
 const modal = document.getElementById("modal");
-grid.addEventListener("click", (e) => {
-  const card = e.target.closest(".card");
-  if (!card) return;
-  const i = Number(card.dataset.index);
-  const w = works[i];
+function openWork(i) {
+  const w = shownWorks[i];
+  if (!w) return;
   document.getElementById("modal-art").innerHTML = artFor(w, i);
-  document.getElementById("modal-cat").textContent = `( ${w.year} — ${w.label} )`;
+  document.getElementById("modal-cat").textContent = `( ${w.year} — ${w.company ? w.company + " — " : ""}${w.label} )`;
   document.getElementById("modal-role").textContent = w.role;
   document.getElementById("modal-point").textContent = w.point;
   document.getElementById("modal-title").textContent = w.title;
   document.getElementById("modal-desc").textContent = w.desc;
+  const link = document.getElementById("modal-link");
+  link.hidden = !w.url;
+  if (w.url) link.href = w.url;
   modal.showModal();
+}
+document.addEventListener("click", (e) => {
+  const card = e.target.closest(".card");
+  if (card) openWork(Number(card.dataset.index));
 });
 document.getElementById("modal-close").addEventListener("click", () => modal.close());
 // 背景をクリックしても閉じる
 modal.addEventListener("click", (e) => { if (e.target === modal) modal.close(); });
+
+// ============================
+// 実務の実績（ログインした人だけ）
+//   private-works.js の暗号化データを、入力されたIDとパスワードで復号して表示する。
+//   正しいIDとパスワードがないと、ファイルを直接見ても中身は読めない。
+// ============================
+(() => {
+  const form = document.getElementById("login");
+  const msg = document.getElementById("login-msg");
+  const area = document.getElementById("private");
+  const KEY = "portfolio-login";   // このタブを閉じるまでログイン状態を覚えておく
+  const data = window.PRIVATE_WORKS;
+  const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+
+  async function unlock(id, pw) {
+    const enc = new TextEncoder();
+    const base = await crypto.subtle.importKey("raw", enc.encode(`${id}\n${pw}`), "PBKDF2", false, ["deriveKey"]);
+    const key = await crypto.subtle.deriveKey(
+      { name: "PBKDF2", hash: "SHA-256", salt: unb64(data.salt), iterations: data.iter },
+      base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(data.iv) }, key, unb64(data.data));
+    return JSON.parse(new TextDecoder().decode(plain));
+  }
+
+  function show(content) {
+    const offset = works.length;
+    const items = content.works.map((w) => {
+      const g = content.groups.find((x) => x.key === w.group);
+      return { ...w, company: g ? g.label : "" };
+    });
+    shownWorks = works.concat(items);
+    document.getElementById("private-note").textContent = content.note || "";
+    document.getElementById("private-groups").innerHTML = content.groups.map((g) => {
+      const list = items.map((w, i) => ({ w, i })).filter(({ w }) => w.group === g.key);
+      if (!list.length) return "";
+      return `<section class="pgroup" aria-label="${esc(g.label)}">
+        <header class="pgroup-head">
+          <h3>${esc(g.label)}</h3><span class="pgroup-en">${esc(g.en || "")}</span>
+          <span class="pgroup-count">( ${list.length} works )</span>
+        </header>
+        ${g.summary ? `<p class="pgroup-summary">${esc(g.summary)}</p>` : ""}
+        <ul class="grid">${list.map(({ w, i }) => cardsHTML([w], offset + i, "is-in")).join("")}</ul>
+      </section>`;
+    }).join("");
+    form.hidden = true;
+    area.hidden = false;
+  }
+
+  async function tryLogin(id, pw, quiet) {
+    if (!data) { msg.textContent = "実績データを読み込めませんでした。"; return; }
+    try {
+      const content = await unlock(id, pw);
+      try { sessionStorage.setItem(KEY, JSON.stringify([id, pw])); } catch {}
+      show(content);
+      if (!quiet) area.querySelector(".pgroup h3")?.focus?.();
+    } catch {
+      if (!quiet) msg.textContent = "IDかパスワードが違います。";
+      try { sessionStorage.removeItem(KEY); } catch {}
+    }
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("login-btn");
+    btn.disabled = true;
+    msg.textContent = "確認しています…";
+    await tryLogin(document.getElementById("login-id").value.trim(), document.getElementById("login-pw").value, false);
+    if (!area.hidden) msg.textContent = "";
+    btn.disabled = false;
+  });
+
+  document.getElementById("logout").addEventListener("click", () => {
+    try { sessionStorage.removeItem(KEY); } catch {}
+    shownWorks = works;
+    document.getElementById("private-groups").innerHTML = "";
+    area.hidden = true;
+    form.hidden = false;
+    form.reset();
+    msg.textContent = "ログアウトしました。";
+  });
+
+  // 同じタブで再読み込みしたときは、ログイン状態を復元
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(KEY) || "null");
+    if (saved) tryLogin(saved[0], saved[1], true);
+  } catch {}
+})();
 
 document.getElementById("year").textContent = new Date().getFullYear();
 
