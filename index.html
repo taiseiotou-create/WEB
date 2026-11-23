@@ -3,152 +3,235 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kawakami Tsuyoshi — Graphic Designer / Art Director</title>
-  <meta name="description" content="鹿児島を拠点に、広告・紙媒体・Web・ロゴの企画とデザインを手がける川上剛志のポートフォリオ">
+  <title>Kawakami Tsuyoshi — 言葉が、かたちになる。</title>
+  <meta name="description" content="鹿児島を拠点に、コピーと企画からデザインまでを手がけるグラフィックデザイナー／アートディレクター川上剛志のポートフォリオ">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Shippori+Mincho:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script>
-    // JSが動く環境だけ登場アニメーションを使う。3秒たっても始まらなければ通常表示に戻す
+    // JSが動く環境だけ、登場アニメーション用のクラスをつける
     document.documentElement.classList.add("js");
-    setTimeout(function () {
-      if (!document.querySelector(".hero.is-ready")) document.documentElement.classList.remove("js");
-    }, 3000);
   </script>
 </head>
 <body>
   <a class="skip" href="#main">本文へスキップ</a>
 
-  <!-- 背景に敷く、巨大な薄い文字（飾り） -->
-  <div class="ghost" aria-hidden="true">
-    <span class="ghost-top" id="ghost-top">KAWAKAMI</span>
-    <span class="ghost-bottom" id="ghost-bottom">TSUYOSHI</span>
+  <!-- 読み込み画面：数字が0→100まで数えて、幕が上がる -->
+  <div class="loader" id="loader" aria-hidden="true">
+    <p class="loader-word">言葉が、<br>かたちになる。</p>
+    <p class="loader-count"><span id="loader-num">000</span><span class="loader-pct">%</span></p>
   </div>
 
-  <!-- 左の縦帯：名前とメニュー -->
-  <header class="rail rail-left">
-    <a class="logo" href="#top">KAWAKAMI TSUYOSHI</a>
-    <nav aria-label="メインメニュー">
-      <ul>
-        <li><a href="#works">作品</a></li>
-        <li><a href="#about">略歴</a></li>
-        <li><a href="#contact">連絡</a></li>
-      </ul>
+  <!-- 独自のマウスカーソル（タッチ端末では出さない） -->
+  <div class="cursor" id="cursor" aria-hidden="true"><span class="cursor-label" id="cursor-label"></span></div>
+
+  <!-- 作品リストで、マウスについてくるプレビュー画像 -->
+  <div class="preview" id="preview" aria-hidden="true"></div>
+
+  <header class="bar">
+    <a class="bar-logo" href="#top" data-cursor="TOP">KAWAKAMI<br>TSUYOSHI</a>
+    <nav class="bar-nav" aria-label="メインメニュー">
+      <a href="#works" data-cursor="GO"><span class="bar-no">01</span>作品</a>
+      <a href="#process" data-cursor="GO"><span class="bar-no">02</span>つくり方</a>
+      <a href="#archive" data-cursor="GO"><span class="bar-no">03</span>実務の実績</a>
+      <a href="#about" data-cursor="GO"><span class="bar-no">04</span>略歴</a>
+      <a href="#contact" data-cursor="GO"><span class="bar-no">05</span>連絡</a>
     </nav>
+    <div class="bar-side">
+      <p class="bar-clock"><span>Kagoshima</span> <time id="clock">--:--:--</time></p>
+      <button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="false">動きを止める</button>
+    </div>
   </header>
 
-  <!-- 右の縦帯：日付と、動きの停止ボタン -->
-  <aside class="rail rail-right" aria-label="補足">
-    <p class="date" id="date">( Nov. 20th, 2026 )</p>
-    <p class="place">鹿児島 — Graphic Designer</p>
-    <button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="false">動きを止める</button>
-  </aside>
-
   <main id="main">
-    <!-- ファーストビュー -->
-    <section class="hero" id="top">
-      <!-- 画面に散らばる大きな縦書きの文字（飾りなので読み上げ対象外） -->
-      <div class="kana" aria-hidden="true">
-        <span class="k k1" style="--i:0" data-speed="0.25"><span class="k-in">つ</span></span>
-        <span class="k k2" style="--i:1" data-speed="0.55"><span class="k-in">た</span></span>
-        <span class="k k3" style="--i:2" data-speed="0.4"><span class="k-in">わ</span></span>
-        <span class="k k4" style="--i:3" data-speed="0.7"><span class="k-in">る</span><i class="dot"></i></span>
+    <!-- ===== ファーストビュー：粒でできたコピー ===== -->
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <canvas class="hero-canvas" id="hero-canvas" aria-hidden="true"></canvas>
+      <div class="hero-top">
+        <p class="label">Graphic Designer / Art Director</p>
+        <p class="label">Copy, Concept &amp; Form — Kagoshima, JP</p>
       </div>
-
-      <h1 class="hero-title" id="copy" aria-label="届く言葉と、伝わるかたち、選ばれる理由、心が動く仕掛けを。">
-        <span aria-hidden="true">届く言葉と、</span>
-        <span aria-hidden="true"><em class="rotator" id="rotator">伝わるかたち</em>を。</span>
+      <h1 class="hero-title" id="hero-title">
+        <span class="hero-pre">届く言葉と、</span>
+        <span class="hero-phrase" id="hero-phrase" aria-live="polite">伝わるかたち</span><span class="hero-post">を。</span>
       </h1>
-
-      <div class="hero-foot rv" style="--d:6">
-        <p class="hero-lead">
-          川上 剛志（かわかみ つよし）<br>
-          鹿児島を拠点に、広告・紙媒体・Webサイト・ロゴを、企画とコピーから一緒につくります。
-        </p>
-        <a class="arrow-link" href="#works">作品を見る <span aria-hidden="true">( → )</span></a>
+      <div class="hero-foot">
+        <p class="hero-lead">川上 剛志（かわかみ つよし）<br>鹿児島を拠点に、広告・紙媒体・Webサイト・ロゴを、<br class="pc">企画とコピーから一緒につくります。</p>
+        <button class="hero-hint" id="hero-next" type="button" data-cursor="CLICK">
+          <span class="hero-hint-dot" aria-hidden="true"></span>クリックで言葉を組み替える
+        </button>
+        <a class="hero-scroll" href="#statement" data-cursor="GO">Scroll<span aria-hidden="true"></span></a>
       </div>
     </section>
 
-    <!-- 作品一覧：データは script.js の works 配列で管理 -->
-    <section class="sec" id="works" aria-labelledby="works-title">
-      <header class="sec-head rv">
-        <p class="sec-num">( 01 )</p>
-        <h2 class="sec-title" id="works-title">作品</h2>
-        <p class="sec-en">Selected Works</p>
+    <!-- ===== 流れる帯（スクロールの速さで速度が変わる） ===== -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track" id="marquee">
+        <span>Copywriting</span><i>✳</i><span>企画</span><i>✳</i><span>Graphic</span><i>✳</i><span>紙媒体</span><i>✳</i><span>Logo</span><i>✳</i><span>Web Design</span><i>✳</i><span>Direction</span><i>✳</i><span>言葉とかたち</span><i>✳</i>
+      </div>
+    </div>
+
+    <!-- ===== ステートメント：スクロールに合わせて1文字ずつ濃くなる ===== -->
+    <section class="statement" id="statement" aria-label="ステートメント">
+      <p class="label">( Statement )</p>
+      <p class="statement-text" id="statement-text">デザインは、飾りではなく、伝えるための道具だと思っています。誰に、何を、どう感じてほしいのか。まず言葉にしてから、かたちにする。だから紙でもWebでも、ぶれずに届くものがつくれます。</p>
+    </section>
+
+    <!-- ===== 作品（公開） ===== -->
+    <section class="works sec" id="works" aria-labelledby="works-title">
+      <header class="sec-head">
+        <p class="sec-no">01</p>
+        <h2 class="sec-title" id="works-title"><span class="en">Works</span><span class="ja">作品</span></h2>
+        <p class="sec-count" id="works-count"></p>
       </header>
-      <div class="sec-body">
-        <div class="filters rv" role="group" aria-label="カテゴリで絞り込み">
-          <button class="filter is-active" data-filter="all" aria-pressed="true">すべて</button>
-          <button class="filter" data-filter="ad" aria-pressed="false">Advertising</button>
-          <button class="filter" data-filter="editorial" aria-pressed="false">Editorial</button>
-          <button class="filter" data-filter="branding" aria-pressed="false">Branding</button>
-          <button class="filter" data-filter="web" aria-pressed="false">Web</button>
-          <button class="filter" data-filter="personal" aria-pressed="false">Personal</button>
+      <div class="works-tools">
+        <div class="seg" role="group" aria-label="表示の切り替え">
+          <button type="button" class="seg-btn is-on" data-view="index" aria-pressed="true" data-cursor="LIST">Index</button>
+          <button type="button" class="seg-btn" data-view="grid" aria-pressed="false" data-cursor="GRID">Grid</button>
         </div>
-        <p class="sr-only" id="count" role="status"></p>
-        <ul class="grid" id="grid"></ul>
-        <p class="works-note">※ 守秘のため、クライアント名は伏せて業種と内容のみを掲載しています。画像は準備中のためイメージ図形を表示しています。</p>
+        <button type="button" class="shuffle" id="shuffle" data-cursor="MIX">Shuffle <span aria-hidden="true">⤨</span></button>
+      </div>
+      <ol class="index" id="works-index"></ol>
+      <ul class="cards" id="works-grid" hidden></ul>
+      <p class="note">※ 自主制作・個人で手がけた作品を公開しています。会社員・業務委託での実績は「03 実務の実績」でログインしてご覧いただけます。画像を準備中の作品は、作品ごとに自動生成したポスターを表示しています。</p>
+    </section>
+
+    <!-- ===== つくり方：横スクロール ===== -->
+    <section class="process" id="process" aria-labelledby="process-title">
+      <div class="process-sticky">
+        <header class="sec-head process-head">
+          <p class="sec-no">02</p>
+          <h2 class="sec-title" id="process-title"><span class="en">Process</span><span class="ja">つくり方</span></h2>
+          <div class="process-bar" aria-hidden="true"><span id="process-bar"></span></div>
+        </header>
+        <ol class="process-track" id="process-track">
+          <li class="step">
+            <p class="step-no">01</p>
+            <p class="step-glyph" aria-hidden="true">聴</p>
+            <h3>聴く</h3>
+            <p>まず、相手のことを知るところから。商品やサービスの良さ、届けたい人、言いにくい悩みまで。話を聞きながら、本当の課題を一緒に探します。</p>
+          </li>
+          <li class="step">
+            <p class="step-no">02</p>
+            <p class="step-glyph" aria-hidden="true">言</p>
+            <h3>言葉にする</h3>
+            <p>見た目を考える前に、伝えたいことを一行の言葉にします。キャッチコピーや構成案として残すので、関わる人全員が同じ方向を向けます。</p>
+          </li>
+          <li class="step">
+            <p class="step-no">03</p>
+            <p class="step-glyph" aria-hidden="true">形</p>
+            <h3>かたちにする</h3>
+            <p>言葉を軸に、レイアウト・色・書体・写真を組み立てます。紙・Web・ロゴなど媒体が変わっても、芯がぶれないデザインに。</p>
+          </li>
+          <li class="step">
+            <p class="step-no">04</p>
+            <p class="step-glyph" aria-hidden="true">届</p>
+            <h3>届ける</h3>
+            <p>印刷や公開までの進行も担当します。出したあとの反応を見て、言葉やデザインを磨き直すところまで、伴走します。</p>
+          </li>
+        </ol>
       </div>
     </section>
 
-    <!-- 自己紹介 -->
-    <section class="sec" id="about" aria-labelledby="about-title">
-      <header class="sec-head rv">
-        <p class="sec-num">( 02 )</p>
-        <h2 class="sec-title" id="about-title">わたしについて</h2>
-        <p class="sec-en">About</p>
+    <!-- ===== 実務の実績：ログインした人だけ（データは private-works.js に暗号化） ===== -->
+    <section class="archive sec" id="archive" aria-labelledby="archive-title">
+      <header class="sec-head">
+        <p class="sec-no">03</p>
+        <h2 class="sec-title" id="archive-title"><span class="en">Archive</span><span class="ja">実務の実績</span></h2>
+        <p class="sec-count">Members only</p>
       </header>
-      <div class="sec-body about-body">
-        <p class="about-lead rv">
-          鹿児島を拠点に活動するグラフィックデザイナー／アートディレクターです。
-          出版社・広告代理店で、求人誌、新聞広告、ポスター、Web、テレビ・ラジオCMの企画制作に携わってきました。
-          現在はフリーランスとして、紙の販促物からWebサイト、ランディングページ、採用広告まで制作しています。
-        </p>
-        <dl class="skills rv">
-          <div><dt>Career</dt><dd>出版社・広告代理店のグループ会社で、デザイナー、アートディレクター、バイスマネージャーを担当。最大7人のチームの指導・育成を担当。現在フリーランス</dd></div>
-          <div><dt>Services</dt><dd>広告・販促物 / パンフレット・冊子 / ロゴ / Webサイト・LPの構成とデザイン / コピー・企画書 / 制作進行</dd></div>
-          <div><dt>Tools</dt><dd>Illustrator / Photoshop / InDesign / Figma / WordPress / STUDIO / Shopify / BASE / Keynote / Canva</dd></div>
-          <div><dt>AI</dt><dd>ChatGPT・Claude・画像生成を、企画の検討や試作に活用</dd></div>
-          <div><dt>Award</dt><dd>路面電車の車内ジャック広告で、チームとして広告賞を受賞</dd></div>
-        </dl>
+      <div class="lock" id="lock">
+        <div class="lock-copy">
+          <p class="lock-mark" aria-hidden="true"><span class="lock-shackle"></span><span class="lock-body"></span></p>
+          <p class="lock-lead">広告代理店・マイナビ・アイドマ・ムスビでの制作実績は、守秘のためログインした方にだけ公開しています。</p>
+          <p class="lock-sub">ご覧になりたい方は、お伝えしたIDとパスワードを入力してください。データは暗号化されていて、正しいIDとパスワードがないと読めません。</p>
+        </div>
+        <form class="login" id="login" autocomplete="on">
+          <label>ID<input type="text" id="login-id" name="username" autocomplete="username" required></label>
+          <label>Password<input type="password" id="login-pw" name="password" autocomplete="current-password" required></label>
+          <button type="submit" class="login-btn magnetic" id="login-btn" data-cursor="OPEN">Unlock <span aria-hidden="true">→</span></button>
+          <p class="login-msg" id="login-msg" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+      <div class="private" id="private" hidden>
+        <div class="private-bar">
+          <p class="private-note" id="private-note"></p>
+          <button type="button" class="logout" id="logout" data-cursor="LOCK">ログアウト</button>
+        </div>
+        <div id="private-groups"></div>
       </div>
     </section>
 
-    <!-- 連絡先 -->
-    <section class="sec" id="contact" aria-labelledby="contact-title">
-      <header class="sec-head rv">
-        <p class="sec-num">( 03 )</p>
-        <h2 class="sec-title" id="contact-title">お問い合わせ</h2>
-        <p class="sec-en">Contact</p>
+    <!-- ===== 略歴 ===== -->
+    <section class="about sec" id="about" aria-labelledby="about-title">
+      <header class="sec-head">
+        <p class="sec-no">04</p>
+        <h2 class="sec-title" id="about-title"><span class="en">About</span><span class="ja">わたしについて</span></h2>
       </header>
-      <div class="sec-body">
-        <p class="contact-lead rv">お仕事のご相談、お気軽にどうぞ。</p>
-        <p class="contact-big rv">Coming soon<span class="dot-accent" aria-hidden="true"></span></p>
-        <p class="contact-note rv">お問い合わせ窓口は準備中です。</p>
+      <div class="about-grid">
+        <p class="about-vertical">言葉と、<br>かたちの、<br>あいだに立つ。</p>
+        <div class="about-body">
+          <p class="about-lead">
+            鹿児島を拠点に活動するグラフィックデザイナー／アートディレクターです。
+            広告代理店とマイナビで、求人誌、新聞広告、ポスター、Web、テレビ・ラジオCMの企画制作に携わってきました。
+            現在はフリーランスとして、アイドマ・ムスビなどの制作に参加しながら、紙の販促物からWebサイト、ランディングページ、採用広告まで制作しています。
+            自主制作では、HSVCJ関連のサイトや、業種別テンプレート集「てんぷれや しごと棚」（制作中）など、AIも活用しながら取り組んでいます。
+          </p>
+          <ol class="timeline">
+            <li><span class="tl-when">Student</span><span class="tl-what">グラフィック個展を開催。デザインで発信することの責任を意識する</span></li>
+            <li><span class="tl-when">Agency</span><span class="tl-what">広告代理店（グループ会社）でデザイナー → アートディレクター → バイスマネージャー。最大7人のチームを指導・育成。チームで広告賞を受賞</span></li>
+            <li><span class="tl-when">Mynavi</span><span class="tl-what">求人誌をはじめとする紙媒体の誌面・広告を制作</span></li>
+            <li><span class="tl-when">Now</span><span class="tl-what">フリーランス。アイドマ・ムスビなどの制作に参加しつつ、自主制作のサイトやテンプレートを展開中</span></li>
+          </ol>
+          <dl class="skills">
+            <div><dt>Services</dt><dd>広告・販促物 / パンフレット・冊子 / ロゴ / Webサイト・LPの構成とデザイン / コピー・企画書 / 制作進行</dd></div>
+            <div><dt>Tools</dt><dd>Illustrator / Photoshop / InDesign / Figma / WordPress / STUDIO / Shopify / BASE / Keynote / Canva</dd></div>
+            <div><dt>AI</dt><dd>ChatGPT・Claude・画像生成を、企画の検討や試作、Webサイトの実装に活用</dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 連絡先 ===== -->
+    <section class="contact" id="contact" aria-labelledby="contact-title">
+      <p class="label">( 05 — Contact )</p>
+      <h2 class="contact-big" id="contact-title" aria-label="Let's talk.">
+        <span class="wave" id="wave">Let's talk.</span>
+      </h2>
+      <div class="contact-foot">
+        <p>お仕事のご相談、お気軽にどうぞ。<br>お問い合わせ窓口は準備中です。</p>
+        <p class="contact-soon">Coming soon<span class="dot" aria-hidden="true"></span></p>
       </div>
     </section>
   </main>
 
-  <footer class="site-footer">
-    <p>COPYRIGHT &copy; <span id="year"></span> KAWAKAMI TSUYOSHI ALL RIGHTS RESERVED</p>
+  <footer class="foot">
+    <p>© <span id="year"></span> KAWAKAMI TSUYOSHI</p>
+    <a href="#top" data-cursor="TOP">Back to top ↑</a>
   </footer>
 
-  <!-- 作品の詳細ダイアログ -->
-  <dialog class="modal" id="modal" aria-labelledby="modal-title">
-    <button class="modal-close" id="modal-close" aria-label="閉じる">( × )</button>
-    <div class="modal-art" id="modal-art"></div>
-    <div class="modal-text">
-      <p class="modal-cat" id="modal-cat"></p>
-      <h3 id="modal-title"></h3>
-      <p id="modal-desc"></p>
-      <dl class="modal-info">
-        <div><dt>担当</dt><dd id="modal-role"></dd></div>
-        <div><dt>ポイント</dt><dd id="modal-point"></dd></div>
+  <!-- 作品の詳細（全画面） -->
+  <dialog class="detail" id="detail" aria-labelledby="detail-title">
+    <button class="detail-close" id="detail-close" type="button" aria-label="閉じる" data-cursor="CLOSE">Close ×</button>
+    <div class="detail-art" id="detail-art"></div>
+    <div class="detail-text">
+      <p class="detail-meta" id="detail-meta"></p>
+      <h3 class="detail-title" id="detail-title"></h3>
+      <p class="detail-desc" id="detail-desc"></p>
+      <dl class="detail-info">
+        <div><dt>担当</dt><dd id="detail-role"></dd></div>
+        <div><dt>ポイント</dt><dd id="detail-point"></dd></div>
       </dl>
+      <a class="detail-link" id="detail-link" href="#" target="_blank" rel="noopener" hidden data-cursor="OPEN">サイトを見る <span aria-hidden="true">↗</span></a>
+      <div class="detail-nav">
+        <button type="button" id="detail-prev" data-cursor="PREV">← Prev</button>
+        <button type="button" id="detail-next" data-cursor="NEXT">Next →</button>
+      </div>
     </div>
   </dialog>
 
+  <script src="private-works.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
