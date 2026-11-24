@@ -241,341 +241,93 @@ $$(".magnetic, .hero-hint, .seg").forEach((el) => {
 });
 
 // ============================
-// ファーストビュー：墨の点が集まって、文字になる（明朝体を網点のように点で組む）
-//   「いろいろな要素を集めて、整える」——デザインの仕事そのものを、トップの動きで表す
-//   1) 明朝体の文字を見えないキャンバスに描き、その形の上に点の置き場所を決める
-//      （線の太い所は大きな点、細い所や端は小さな点＝網点のように）
-//   2) 画面に散らばった墨の点が、一つずつ飛んできて置き場所に収まる
-//   3) 点は1粒ずつGPU（画像処理用の部品）で描く：いびつな輪郭、紙の繊維に沿ったにじみ、
-//      縁の墨だまり、濃淡。着地するとにじみがじわっと広がり、重なった所は墨が重なって濃くなる
-//   4) 集まりきったら、朱の印鑑「剛志」が押される
-//   5) マウスを近づけると点がよけて、離すとまた整列する
-//   ※ WebGL が使えない環境では、普通の円で点を描く
+// ファーストビュー：粒でできたコピー
+//   文字を見えないキャンバスに描き、色のある点の位置を「目的地」として集める。
+//   粒はバネのように目的地へ戻ろうとし、マウスが近づくと押しのけられる。
 // ============================
 const phrases = ["伝わるかたち", "選ばれる理由", "心が動く仕掛け", "届く言葉"];
-const DOT_FONT = '"Shippori Mincho B1", "Zen Old Mincho", serif';   // 太さの強弱が美しい明朝体
 const hero = (() => {
-  const cvs = $("#hero-canvas");
+  const cvs = $("#hero-canvas"), ctx = cvs.getContext("2d");
   const phraseEl = $("#hero-phrase");
-  const sealEl = $("#hero-seal");
-  let gl = cvs.getContext("webgl", { premultipliedAlpha: true, alpha: true, antialias: true });
-  let ctx2 = null;
-  let W = 0, H = 0, R = 1, p = 0, dots = [], fs = 100, lastBox = null, running = false, timer = 0, sealShown = false, gatherEnd = 0;
-  const mrel = { x: -9999, y: -9999 };
-
-  // ---------- 点の置き場所づくり ----------
-  function layout(text) {
-    const chars = [...text];
-    const narrow = W < 700;
-    const lines = narrow && chars.length > 4 ? [chars.slice(0, Math.ceil(chars.length / 2)), chars.slice(Math.ceil(chars.length / 2))] : [chars];
-    const longest = Math.max(...lines.map((l) => l.length));
-    return { lines, fs: Math.min((W * 0.8) / longest, H * (narrow ? 0.26 : 0.42)) };
-  }
+  let W = 0, H = 0, dpr = 1, p = 0, parts = [], step = 6, running = false, last = 0, timer = 0;
+  let ink = "#141413", accent = "#ff4a1c";
+  const readColors = () => {
+    const cs = getComputedStyle(document.documentElement);
+    ink = cs.getPropertyValue("--ink").trim() || ink;
+    accent = cs.getPropertyValue("--accent").trim() || accent;
+  };
   function targets(text) {
-    const L = layout(text); fs = L.fs;
-    const c = document.createElement("canvas"); c.width = W; c.height = H;
-    const o = c.getContext("2d");
-    o.font = `800 ${fs}px ${DOT_FONT}`; o.textBaseline = "middle"; o.fillStyle = o.strokeStyle = "#000";
-    o.lineWidth = fs * 0.012; o.lineJoin = "round";   // 細い線にも点がのるよう、ごくわずかに太らせる
-    L.lines.forEach((l, k) => {
-      const total = o.measureText(l.join("")).width;
-      let x = W / 2 - total / 2;
-      const y = H * 0.47 + (k - (L.lines.length - 1) / 2) * fs * 1.1;
-      l.forEach((ch) => { const w = o.measureText(ch).width; o.fillText(ch, x, y); o.strokeText(ch, x, y); lastBox = { x1: x + w, y }; x += w; });
-    });
-    const a = o.getImageData(0, 0, W, H).data;
-    const inside = (x, y) => x >= 0 && y >= 0 && x < W && y < H && a[((y | 0) * W + (x | 0)) * 4 + 3] > 110;
-    // 線の太さ：上下左右にどこまで墨が続くかで、ざっくり測る
-    const thick = (x, y) => {
-      let n = 0; const st = fs * 0.012;
-      for (let k = 1; k <= 6; k++) { const d = k * st; n += inside(x + d, y) + inside(x - d, y) + inside(x, y + d) + inside(x, y - d); }
-      return n / 24;
-    };
-    const g = fs / 34, pts = [];   // 点の間隔。細かいほど明朝体の入りや払いまで表せる
-    for (let y = g / 2; y < H; y += g * 0.86) {
-      for (let x = ((y / g) & 1 ? g / 2 : 0); x < W; x += g) {
-        const jx = x + (Math.random() - 0.5) * g * 0.4, jy = y + (Math.random() - 0.5) * g * 0.4;
-        if (!inside(jx, jy)) continue;
-        const t = thick(jx, jy);
-        const big = Math.random() < 0.03 ? 1.5 : 1;   // ところどころ大きな墨の滴
-        pts.push({ x: jx, y: jy, r: g * (0.24 + 0.62 * t) * (0.8 + Math.random() * 0.4) * big });   // 細い線は小さな点、太い線は大きな点
-      }
-    }
-    // まとまりきらない点：文字のまわりに少しだけ
-    const extra = Math.round(pts.length * 0.06);
-    for (let k = 0; k < extra; k++) {
-      const b = pts[(Math.random() * pts.length) | 0], ang = Math.random() * Math.PI * 2, d = fs * (0.15 + Math.random() * 0.35);
-      pts.push({ x: b.x + Math.cos(ang) * d, y: b.y + Math.sin(ang) * d, r: g * (0.12 + Math.random() * 0.22) });
-    }
+    const off = document.createElement("canvas");
+    off.width = W; off.height = H;
+    const o = off.getContext("2d");
+    const chars = [...text].length;
+    const vertical = W < 700;              // スマホでは2行に分けて大きく
+    const lines = vertical && chars > 4 ? [text.slice(0, Math.ceil(chars / 2)), text.slice(Math.ceil(chars / 2))] : [text];
+    const longest = Math.max(...lines.map((l) => [...l].length));
+    const fs = Math.min((W * 0.88) / longest, (H * (vertical ? 0.26 : 0.42)));
+    o.font = `900 ${fs}px "Zen Old Mincho", serif`;
+    o.textAlign = "center"; o.textBaseline = "middle"; o.fillStyle = "#000";
+    lines.forEach((l, k) => o.fillText(l, W / 2, H * 0.47 + (k - (lines.length - 1) / 2) * fs * 1.05));
+    step = Math.max(4, Math.round(fs / (isTouch ? 15 : 19)));
+    const data = o.getImageData(0, 0, W, H).data, pts = [];
+    for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) if (data[(y * W + x) * 4 + 3] > 140) pts.push([x, y]);
     return pts;
   }
-
-  // ---------- 点の動き ----------
-  const ease = (t) => 1 - Math.pow(1 - t, 3);
-  function assemble(text, scatterFrom) {
-    const pts = targets(text).sort((a, b) => a.x - b.x + (Math.random() - 0.5) * fs * 0.6);   // だいたい左から順に集まる
-    const now = performance.now();
-    const old = dots;
-    dots = pts.map((pt, k) => {
-      const prev = old[k];
-      const from = prev && scatterFrom ? { x: prev.x, y: prev.y } : { x: Math.random() * W, y: Math.random() * H };
-      return {
-        tx: pt.x, ty: pt.y, r: pt.r, x: from.x, y: from.y, sx: from.x, sy: from.y, vx: 0, vy: 0,
-        bend: (Math.random() - 0.5) * fs * 1.4,           // 飛んでくる軌道のふくらみ
-        delay: 250 + (k / pts.length) * 1500 + Math.random() * 250, dur: 650 + Math.random() * 500,
-        seed: Math.random(), land: 0, spread: 0, arrived: false, start: now,
-      };
-    });
-    gatherEnd = now + Math.max(...dots.map((d) => d.delay + d.dur)) + 200;
-    sealShown = false; sealEl.classList.remove("is-on");
-    placeSeal();
-    if (isPaused()) settle();
+  function setPhrase(scatter) {
+    const pts = targets(phrases[p]);
     phraseEl.textContent = phrases[p];
-    kick();
+    // 粒の数を目的地の数に合わせる（足りなければ画面の外から追加）
+    while (parts.length < pts.length) parts.push({ x: Math.random() * W, y: H + Math.random() * 200, vx: 0, vy: 0, tx: 0, ty: 0, hot: Math.random() < 0.09 });
+    parts.length = Math.max(pts.length, 1);
+    pts.sort(() => Math.random() - 0.5).forEach((pt, k) => { parts[k].tx = pt[0]; parts[k].ty = pt[1]; });
+    if (scatter) parts.forEach((q) => { const a = Math.random() * Math.PI * 2, s = 8 + Math.random() * 22; q.vx += Math.cos(a) * s; q.vy += Math.sin(a) * s; });
+    if (isPaused()) { parts.forEach((q) => { q.x = q.tx; q.y = q.ty; }); draw(); }
   }
-  function settle() {   // 動きを止めているときは、最初から整列した状態
-    dots.forEach((d) => { d.x = d.tx; d.y = d.ty; d.arrived = true; d.land = -1e9; d.spread = 1; });
-    sealEl.classList.add("is-on", "no-anim"); sealShown = true; draw();
+  function resize() {
+    dpr = Math.min(devicePixelRatio || 1, 2);
+    W = cvs.clientWidth; H = cvs.clientHeight;
+    cvs.width = W * dpr; cvs.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    readColors();
+    setPhrase(false);
   }
-  function scatter() {  // 言葉を切り替える前に、点がばらける
-    const now = performance.now();
-    dots.forEach((d) => {
-      const ang = Math.random() * Math.PI * 2, sp = fs * (0.5 + Math.random() * 1.6);
-      d.sx = d.x; d.sy = d.y; d.tx2 = clamp(d.x + Math.cos(ang) * sp, 0, W); d.ty2 = clamp(d.y + Math.sin(ang) * sp, 0, H);
-      d.out = now; d.arrived = false;
-    });
-    sealEl.classList.remove("is-on", "no-anim");
-  }
-  function step(now) {
-    const rect = cvs.getBoundingClientRect();
-    mrel.x = mouse.x - rect.left; mrel.y = mouse.y - rect.top;
-    let moving = false;
-    for (const d of dots) {
-      if (d.out) {                                   // ばらける途中
-        const t = clamp((now - d.out) / 450, 0, 1), e = ease(t);
-        d.x = lerp(d.sx, d.tx2, e); d.y = lerp(d.sy, d.ty2, e);
-        moving = true; continue;
-      }
-      if (!d.arrived) {                              // 飛んでくる途中（ゆるい曲線を描く）
-        const t = clamp((now - d.start - d.delay) / d.dur, 0, 1), e = ease(t);
-        const mx = (d.sx + d.tx) / 2 + d.bend * 0.3, my = (d.sy + d.ty) / 2 - Math.abs(d.bend) * 0.4;
-        d.x = (1 - e) * (1 - e) * d.sx + 2 * (1 - e) * e * mx + e * e * d.tx;
-        d.y = (1 - e) * (1 - e) * d.sy + 2 * (1 - e) * e * my + e * e * d.ty;
-        if (t >= 1) { d.arrived = true; d.land = now; }
-        moving = true; continue;
-      }
-      // 着地後：にじみが広がる。マウスが近いとよけて、バネで戻る
-      d.spread = clamp((now - d.land) / 1100, 0, 1);
-      if (d.spread < 1) moving = true;
-      if (mouse.active) {
-        const dx = d.x - mrel.x, dy = d.y - mrel.y, d2 = dx * dx + dy * dy, RR = isTouch ? 60 : 95;
-        if (d2 < RR * RR) { const dd = Math.sqrt(d2) || 1, f = ((RR - dd) / RR) * 3.2; d.vx += (dx / dd) * f; d.vy += (dy / dd) * f; }
-      }
-      d.vx += (d.tx - d.x) * 0.07; d.vy += (d.ty - d.y) * 0.07;
-      d.vx *= 0.78; d.vy *= 0.78; d.x += d.vx; d.y += d.vy;
-      if (Math.abs(d.vx) + Math.abs(d.vy) > 0.02) moving = true;
-    }
-    if (!sealShown && now > gatherEnd && !dots.some((d) => d.out)) { sealShown = true; sealEl.classList.add("is-on"); }
-    return moving || now < gatherEnd + 1200;
-  }
-
-  // ---------- 描画（WebGL：点を1粒ずつ墨の滴として描く） ----------
-  const VS = `attribute vec2 aPos; attribute vec3 aDot; uniform vec2 uRes; uniform float uS;
-    varying vec3 vDot; varying float vR;
-    void main(){ vec2 c = aPos / uRes * 2. - 1.; gl_Position = vec4(c.x, -c.y, 0., 1.); gl_PointSize = aDot.x * uS * 3.2; vDot = aDot; vR = aDot.x * uS; }`;
-  const FS = `precision highp float;
-    varying vec3 vDot; varying float vR; uniform vec3 uInk;
-    float hash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
-    float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3. - 2. * f);
-      return mix(mix(hash(i), hash(i + vec2(1., 0.)), u.x), mix(hash(i + vec2(0., 1.)), hash(i + vec2(1., 1.)), u.x), u.y); }
-    float fbm(vec2 p){ float r = 0., a = .5; for (int i = 0; i < 4; i++){ r += a * noise(p); p = p * 2.1 + 7.3; a *= .5; } return r; }
-    void main(){
-      float seed = vDot.y * 97.;
-      float spread = vDot.z;                         // 着地してからの、にじみの広がり 0→1
-      vec2 q = (gl_PointCoord - .5) * 3.2;          // 点の半径を1とした座標
-      float r = length(q), ang = atan(q.y, q.x);
-      // いびつな輪郭：角度ごとに少しずつ出入りさせる
-      vec2 ac = vec2(cos(ang), sin(ang));
-      float edge = 1. + .16 * (noise(ac * 1.6 + seed) - .5) + .08 * (noise(ac * 4.5 + seed * 2.) - .5);
-      // にじみ：紙の繊維に沿って、放射状にしみ出す
-      float fib = fbm(vec2(ang * 7. + seed, r * 2.5 + seed));
-      float reach = edge + spread * (.12 + .45 * fib * fib);
-      float core = 1. - smoothstep(edge - .05, edge + .05, r);
-      float halo = (1. - smoothstep(edge, reach, r)) * (1. - core);
-      // 濃淡：縁は墨だまりで濃く、内側は少し薄い。紙の凹凸で細かくムラが出る
-      float tone = .9 + .1 * smoothstep(.55, edge, r);
-      tone *= .9 + .1 * noise(q * 4. + seed);
-      float a = core * tone + halo * (.3 + .35 * fib) * spread;
-      // 小さな飛沫
-      float sp = step(.985, hash(floor((q + seed) * 2.2))) * step(edge + .2, r) * step(r, 1.55);
-      a = max(a, sp * .7);
-      // 濡れているうちは少し濃い
-      a = clamp(a * (1.08 - .08 * spread), 0., 1.);
-      gl_FragColor = vec4(uInk * a, a);
-    }`;
-  let prog = null, buf = null, data = new Float32Array(0), U = {}, A = {};
-  function compile(type, src) { const sh = gl.createShader(type); gl.shaderSource(sh, src); gl.compileShader(sh); if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh)); return sh; }
-  function setupGL() {
-    prog = gl.createProgram();
-    gl.attachShader(prog, compile(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FS));
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
-    gl.useProgram(prog);
-    buf = gl.createBuffer();
-    A.pos = gl.getAttribLocation(prog, "aPos"); A.dot = gl.getAttribLocation(prog, "aDot");
-    ["uRes", "uS", "uInk"].forEach((k) => { U[k] = gl.getUniformLocation(prog, k); });
-    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);   // 墨が重なると濃くなる
-  }
-  const hex = (h) => { const m = h.trim().replace("#", "").match(/.{2}/g); return m ? m.map((x) => parseInt(x, 16) / 255) : [0.08, 0.08, 0.075]; };
-  function colors() { if (gl) gl.uniform3fv(U.uInk, hex(getComputedStyle(document.documentElement).getPropertyValue("--ink"))); }
   function draw() {
-    if (!gl) return draw2d();
-    if (data.length < dots.length * 5) data = new Float32Array(dots.length * 5);
-    dots.forEach((d, k) => { const i = k * 5; data[i] = d.x * R; data[i + 1] = d.y * R; data[i + 2] = d.r; data[i + 3] = d.seed; data[i + 4] = d.spread; });
-    gl.viewport(0, 0, cvs.width, cvs.height);
-    gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.uniform2f(U.uRes, cvs.width, cvs.height); gl.uniform1f(U.uS, R);
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, data.subarray(0, dots.length * 5), gl.DYNAMIC_DRAW);
-    gl.enableVertexAttribArray(A.pos); gl.vertexAttribPointer(A.pos, 2, gl.FLOAT, false, 20, 0);
-    gl.enableVertexAttribArray(A.dot); gl.vertexAttribPointer(A.dot, 3, gl.FLOAT, false, 20, 8);
-    gl.drawArrays(gl.POINTS, 0, dots.length);
-  }
-  function draw2d() {   // WebGL が使えないとき
-    ctx2 = ctx2 || cvs.getContext("2d");
-    if (!ctx2) return;
-    ctx2.setTransform(R, 0, 0, R, 0, 0); ctx2.clearRect(0, 0, W, H);
-    ctx2.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--ink");
-    for (const d of dots) { ctx2.beginPath(); ctx2.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx2.fill(); }
+    ctx.clearRect(0, 0, W, H);
+    const s = step * 0.62;
+    ctx.fillStyle = ink;
+    for (const q of parts) if (!q.hot) ctx.fillRect(q.x - s / 2, q.y - s / 2, s, s);
+    ctx.fillStyle = accent;
+    for (const q of parts) if (q.hot) ctx.fillRect(q.x - s / 2, q.y - s / 2, s, s);
   }
   function tick(now) {
     if (!running) return;
-    const more = step(now);
-    draw();
-    if (more) requestAnimationFrame(tick); else running = false;
-  }
-  let ready = false;   // 初期化が終わるまでは動かさない
-  function kick() { if (ready && !running && !isPaused() && inView) { running = true; requestAnimationFrame(tick); } }
-  let inView = true;
-  new IntersectionObserver(([e]) => { inView = e.isIntersecting; if (inView) kick(); }).observe(cvs);
-  addEventListener("pointermove", (e) => { if (inView && e.clientY < innerHeight) kick(); }, { passive: true });
-
-  // ---------- 印鑑「剛志」 ----------
-  function makeSeal() {
-    // 九畳篆（きゅうじょうてん）風：文字を方眼の升目に組み替え、四角い枠いっぱいに詰めた陽刻の印影
-    const size = 240, px = size * 2, c = sealEl, o = c.getContext("2d");
-    c.width = c.height = px;
-    const red = [196, 46, 26];
-    // 1) 文字の形を升目に置き換える（升目ごとに、墨の割合が多ければ塗る）
-    const N = 21;                                      // 1文字あたりの升目の数（横）。細かいほど線が細く折れ曲がる
-    const glyphGrid = (ch, cols, rows) => {
-      // 大きく描いた文字の、実際に墨がある範囲を測り、升目の範囲いっぱいに合わせる
-      const big = document.createElement("canvas"); big.width = big.height = 400;
-      const bo = big.getContext("2d");
-      bo.font = `500 320px "Zen Kaku Gothic New", sans-serif`; bo.textAlign = "center"; bo.textBaseline = "middle";
-      bo.fillText(ch, 200, 210);
-      const bd = bo.getImageData(0, 0, 400, 400).data;
-      let x0 = 400, y0 = 400, x1 = 0, y1 = 0;
-      for (let y = 0; y < 400; y++) for (let x = 0; x < 400; x++) if (bd[(y * 400 + x) * 4 + 3] > 100) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
-      const g = document.createElement("canvas"); g.width = cols * 20; g.height = rows * 20;
-      const go = g.getContext("2d");
-      go.drawImage(big, x0, y0, x1 - x0 + 1, y1 - y0 + 1, 0, 0, g.width, g.height);
-      const d = go.getImageData(0, 0, g.width, g.height).data, cells = [];
-      for (let r = 0; r < rows; r++) for (let q = 0; q < cols; q++) {
-        let n = 0;
-        for (let y = 0; y < 20; y += 2) for (let x = 0; x < 20; x += 2) n += d[((r * 20 + y) * g.width + q * 20 + x) * 4 + 3] > 110;
-        cells.push(n / 100 > 0.24);
+    const dt = Math.min(2, (now - last) / 16.7 || 1); last = now;
+    const r = cvs.getBoundingClientRect();
+    const mx = mouse.x - r.left, my = mouse.y - r.top, R = isTouch ? 70 : 110;
+    for (const q of parts) {
+      q.vx += (q.tx - q.x) * 0.055 * dt; q.vy += (q.ty - q.y) * 0.055 * dt;
+      if (mouse.active) {
+        const dx = q.x - mx, dy = q.y - my, d2 = dx * dx + dy * dy;
+        if (d2 < R * R) { const d = Math.sqrt(d2) || 1, f = ((R - d) / R) * 5 * dt; q.vx += (dx / d) * f; q.vy += (dy / d) * f; }
       }
-      return cells;
-    };
-    const m = 16, frame = 15, inner = size - (m + frame) * 2, gap = 6;
-    const cols = N, rows = Math.round(N * 0.5);        // 縦に2文字なので、1文字は横長の升目
-    const cw = (inner - gap * 2) / cols, ch = (inner - gap * 3) / (rows * 2);
-    const top = glyphGrid("剛", cols, rows), bottom = glyphGrid("志", cols, rows);
-    // 2) 描く（2倍の細かさ）
-    o.setTransform(2, 0, 0, 2, 0, 0);
-    o.clearRect(0, 0, size, size);
-    o.fillStyle = `rgb(${red})`;
-    // 太い外枠（角はわずかに丸く）
-    const rr = 10;
-    o.beginPath(); o.roundRect ? o.roundRect(m, m, size - m * 2, size - m * 2, rr) : o.rect(m, m, size - m * 2, size - m * 2);
-    o.roundRect ? o.roundRect(m + frame, m + frame, inner, inner, 3) : o.rect(m + frame, m + frame, inner, inner);
-    o.fill("evenodd");
-    // 升目の文字
-    const x0 = m + frame + gap, y0 = m + frame + gap;
-    const drawCells = (cells, oy) => {
-      cells.forEach((on, k) => {
-        if (!on) return;
-        const q = k % cols, r = (k / cols) | 0;
-        o.fillRect(x0 + q * cw - 0.3, oy + r * ch - 0.3, cw + 0.6, ch + 0.6);   // 隣の升目とつながるよう少し重ねる
-      });
-    };
-    drawCells(top, y0);
-    drawCells(bottom, y0 + rows * ch + gap);
-    // 上下の文字の間に細い仕切り線
-    o.fillRect(x0, y0 + rows * ch + gap * 0.5 - 1, inner - gap * 2, 2);
-    // 3) 朱肉の質感：押しムラ、紙の凹凸でのかすれ、縁の欠け、わずかなにじみ
-    o.setTransform(1, 0, 0, 1, 0, 0);
-    const img = o.getImageData(0, 0, px, px), d = img.data;
-    const vnoise = (cs) => {
-      const gw = Math.ceil(px / cs) + 2, grid = Float32Array.from({ length: gw * gw }, () => Math.random());
-      return (x, y) => { const gx = x / cs, gy = y / cs, ix = gx | 0, iy = gy | 0, fx = gx - ix, fy = gy - iy;
-        const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
-        return lerp(lerp(grid[iy * gw + ix], grid[iy * gw + ix + 1], sx), lerp(grid[(iy + 1) * gw + ix], grid[(iy + 1) * gw + ix + 1], sx), sy); };
-    };
-    const big = vnoise(70), mid = vnoise(18), fine = vnoise(4);
-    for (let y = 0; y < px; y++) for (let x = 0; x < px; x++) {
-      const i = (y * px + x) * 4; if (!d[i + 3]) continue;
-      const edgeDist = Math.min(x, y, px - x, py(y)) ; // 外周からの距離
-      const press = big(x, y) * 0.55 + mid(x, y) * 0.3 + fine(x, y) * 0.25;   // 押す力のムラ
-      let a = clamp((press - 0.2) * 3.4, 0, 1);
-      if (edgeDist < 60) a *= clamp((mid(x + 400, y) * 0.9 + fine(x, y) * 0.5 - 0.25) * 2.5 + edgeDist / 60, 0, 1);   // 縁は欠けやすい
-      d[i + 3] = d[i + 3] * (0.25 + 0.75 * a) * (Math.random() < 0.015 ? 0.2 : 1);
-      d[i] = red[0]; d[i + 1] = red[1]; d[i + 2] = red[2];
+      q.vx *= 0.8; q.vy *= 0.8; q.x += q.vx * dt; q.y += q.vy * dt;
     }
-    function py(y) { return px - y; }
-    o.putImageData(img, 0, 0);
+    draw();
+    requestAnimationFrame(tick);
   }
-  function placeSeal() {
-    if (!lastBox) return;
-    const s = fs * 0.5;
-    sealEl.style.width = sealEl.style.height = `${s}px`;
-    let left = lastBox.x1 + fs * 0.14, top = lastBox.y + fs * 0.05;
-    if (left + s > W - 10) { left = W - s - 16; top = lastBox.y + fs * 0.62; }   // 右に余白がないときは、文字の下に押す
-    sealEl.style.left = `${left}px`;
-    sealEl.style.top = `${top}px`;
-  }
-
-  // ---------- 切り替え・初期化 ----------
-  function next() {
-    p = (p + 1) % phrases.length;
-    restartTimer();
-    if (isPaused()) { assemble(phrases[p], false); return; }
-    scatter(); kick();
-    setTimeout(() => { dots.forEach((d) => { delete d.out; delete d.start; }); assemble(phrases[p], true); }, 480);
-  }
-  function restartTimer() { clearInterval(timer); if (!isPaused()) timer = setInterval(next, 10000); }
-  function resize() {
-    R = Math.min(devicePixelRatio || 1, 2);
-    W = cvs.clientWidth; H = cvs.clientHeight;
-    cvs.width = Math.round(W * R); cvs.height = Math.round(H * R);
-  }
-  let rt, lastW = 0;
-  addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if (cvs.clientWidth !== lastW) { lastW = cvs.clientWidth; resize(); assemble(phrases[p], false); settle(); } }, 200); });
+  function start() { if (running || isPaused()) return; running = true; last = performance.now(); requestAnimationFrame(tick); }
+  function stop() { running = false; }
+  function next() { p = (p + 1) % phrases.length; setPhrase(!isPaused()); restartTimer(); }
+  function restartTimer() { clearInterval(timer); if (!isPaused()) timer = setInterval(next, 7000); }
+  // 画面に見えている間だけ動かす（電池と処理の節約）
+  new IntersectionObserver(([e]) => { if (e.isIntersecting) start(); else stop(); }).observe(cvs);
   cvs.addEventListener("click", () => { getSelection()?.removeAllRanges(); next(); });
   cvs.addEventListener("mousedown", (e) => { if (e.detail > 1) e.preventDefault(); });   // ダブルクリックで文字が選択されないように
   $("#hero-next").addEventListener("click", next);
-  pauseListeners.push((paused) => { if (paused) { clearInterval(timer); settle(); } else restartTimer(); });
-  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { colors(); draw(); });
-  return {
-    init() {
-      lastW = cvs.clientWidth;
-      if (gl) { try { setupGL(); colors(); } catch (err) { console.warn(err); gl = null; } }
-      resize(); makeSeal(); ready = true;
-      assemble(phrases[p], false);
-      restartTimer();
-    },
-  };
+  pauseListeners.push((paused) => { if (paused) { stop(); parts.forEach((q) => { q.x = q.tx; q.y = q.ty; }); draw(); clearInterval(timer); } else { start(); restartTimer(); } });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { readColors(); draw(); });
+  let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(resize, 150); });
+  return { init() { resize(); restartTimer(); start(); } };
 })();
 
 // ============================
@@ -774,11 +526,7 @@ tickClock(); setInterval(tickClock, 1000);
     });
   }
   await fontsReady;
-  await Promise.all([
-    document.fonts?.load?.('900 100px "Zen Old Mincho"', phrases.join("")),
-    document.fonts?.load?.('800 100px "Shippori Mincho B1"', phrases.join("")),
-    document.fonts?.load?.('700 100px "Zen Kaku Gothic New"', "剛志"),
-  ]).catch(() => {});
+  await document.fonts?.load?.('900 100px "Zen Old Mincho"', phrases.join("")).catch(() => {});
   hero.init();
   setupReveal();
   applyPause();
