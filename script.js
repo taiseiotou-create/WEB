@@ -80,8 +80,13 @@ function poster(work, i) {
     `<path d="M0 750 L600 120 L600 750 Z" fill="${a}"/><text x="60" y="380" font-size="300" fill="${c}" font-family="Zen Old Mincho, serif" font-weight="900">${g}</text>`,
     `<g fill="${a}">${Array.from({ length: 6 }, (_, k) => `<rect x="${k * 100}" y="0" width="50" height="750" opacity="${0.25 + k * 0.12}"/>`).join("")}</g><text x="300" y="470" font-size="330" text-anchor="middle" fill="${c}" font-family="Zen Old Mincho, serif" font-weight="900">${g}</text>`,
   ];
+  const lay = layouts[i % layouts.length];
+  // 版ズレ：同じ図柄を朱色で少しずらして下に敷き、その上に本来の色を刷る
+  const ghost = lay.replace(/fill="(?!none)[^"]*"/g, 'fill="#ff4a1c"').replace(/stroke="[^"]*"/g, 'stroke="#ff4a1c"');
   return `<svg viewBox="0 0 600 750" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${t} のイメージ">
-    <rect width="600" height="750" fill="${b}"/>${layouts[i % layouts.length]}
+    <rect width="600" height="750" fill="${b}"/>
+    <g filter="url(#riso)" opacity=".28" transform="translate(7 5)" style="mix-blend-mode:multiply">${ghost}</g>
+    <g filter="url(#riso)">${lay}</g>
     <text x="30" y="50" font-size="22" fill="${c}" font-family="JetBrains Mono, monospace">No.${no}</text>
     <text x="570" y="720" font-size="20" text-anchor="end" fill="${c}" font-family="JetBrains Mono, monospace">${esc(work.category)} / ${esc(work.year)}</text>
   </svg>`;
@@ -167,6 +172,27 @@ function openWork(i) {
   if (!detail.open) detail.showModal();
   detail.querySelector(".detail-text").scrollTop = 0;
 }
+// クリックしたところにインクが飛び散る（入力欄などでは出さない）
+document.addEventListener("pointerdown", (e) => {
+  if (isPaused() || e.target.closest("input, textarea, dialog")) return;
+  const n = 7 + ((Math.random() * 6) | 0);
+  for (let k = 0; k < n; k++) {
+    const el = document.createElement("span");
+    el.className = "splat";
+    const size = k === 0 ? 14 + Math.random() * 10 : 3 + Math.random() * 8;
+    const a = Math.random() * Math.PI * 2, dist = k === 0 ? 0 : 16 + Math.random() * 46;
+    el.style.width = el.style.height = `${size}px`;
+    el.style.background = Math.random() < 0.7 ? "var(--accent)" : "var(--ink)";
+    document.body.appendChild(el);
+    const x = e.clientX - size / 2, y = e.clientY - size / 2;
+    el.animate([
+      { transform: `translate(${x}px, ${y}px) scale(.2)`, opacity: 1 },
+      { transform: `translate(${x + Math.cos(a) * dist}px, ${y + Math.sin(a) * dist}px) scale(1, ${0.8 + Math.random() * 0.5})`, opacity: 0.95, offset: 0.25 },
+      { transform: `translate(${x + Math.cos(a) * dist}px, ${y + Math.sin(a) * dist + 10}px) scale(.9, 1.3)`, opacity: 0 },
+    ], { duration: 900 + Math.random() * 500, easing: "cubic-bezier(.2,.8,.2,1)" }).onfinish = () => el.remove();
+  }
+});
+
 document.addEventListener("click", (e) => {
   const b = e.target.closest(".row-btn, .card");
   if (b) { hidePreview(); openWork(Number(b.dataset.index)); }
@@ -215,92 +241,184 @@ $$(".magnetic, .hero-hint, .seg").forEach((el) => {
 });
 
 // ============================
-// ファーストビュー：粒でできたコピー
-//   文字を見えないキャンバスに描き、色のある点の位置を「目的地」として集める。
-//   粒はバネのように目的地へ戻ろうとし、マウスが近づくと押しのけられる。
+// ファーストビュー：インクでできたコピー
+//   1) 文字を見えないキャンバスに描き、インクのある点の位置を「目的地」として集める
+//   2) 粒（インクの滴）はバネのように目的地へ戻ろうとし、マウスでこすると伸びて、離れた滴は少し垂れる
+//   3) 滴をぼかして重ね合わせ、「濃さがしきい値を超えたところだけインク」にする（メタボールという手法）
+//      → 滴同士が溶け合って一続きの線になり、液体のように見える
+//   4) しきい値を紙のムラで揺らして輪郭をにじませ、縁を濃く・中央を少し薄くして「乾いたインク」の質感を出す
 // ============================
 const phrases = ["伝わるかたち", "選ばれる理由", "心が動く仕掛け", "届く言葉"];
 const hero = (() => {
   const cvs = $("#hero-canvas"), ctx = cvs.getContext("2d");
   const phraseEl = $("#hero-phrase");
-  let W = 0, H = 0, dpr = 1, p = 0, parts = [], step = 6, running = false, last = 0, timer = 0;
-  let ink = "#141413", accent = "#ff4a1c";
+  let S = 0.7;                                    // インクの計算は画面より少し粗い細かさで行う（軽くするため）
+  const field = document.createElement("canvas"), fctx = field.getContext("2d", { willReadFrequently: true });
+  const out = document.createElement("canvas"), octx = out.getContext("2d");
+  let W = 0, H = 0, FW = 0, FH = 0, dpr = 1, p = 0, parts = [], step = 6, running = false, last = 0, timer = 0, frameNo = 0;
+  let ink = [20, 20, 19], accent = [255, 74, 28], img = null, paper = null, sprites = null;
+  const mvel = { x: 0, y: 0, px: 0, py: 0 };
+
+  const hex = (h) => { const m = h.replace("#", "").match(/.{2}/g); return m ? m.map((x) => parseInt(x, 16)) : null; };
   const readColors = () => {
     const cs = getComputedStyle(document.documentElement);
-    ink = cs.getPropertyValue("--ink").trim() || ink;
-    accent = cs.getPropertyValue("--accent").trim() || accent;
+    ink = hex(cs.getPropertyValue("--ink").trim()) || ink;
+    accent = hex(cs.getPropertyValue("--accent").trim()) || accent;
   };
+  // ぼかした滴の画像（赤＝墨、緑＝朱）。同じ画像を何千回も描くだけなので速い
+  function makeSprites(r) {
+    const mk = (rgb) => {
+      const c = document.createElement("canvas"), size = Math.ceil(r * 2);
+      c.width = c.height = size;
+      const g = c.getContext("2d"), grd = g.createRadialGradient(r, r, 0, r, r, r);
+      grd.addColorStop(0, `rgba(${rgb},0.62)`); grd.addColorStop(0.45, `rgba(${rgb},0.38)`); grd.addColorStop(1, `rgba(${rgb},0)`);
+      g.fillStyle = grd; g.fillRect(0, 0, size, size);
+      return c;
+    };
+    return { ink: mk("255,0,0"), acc: mk("0,255,0"), r };
+  }
+  // 紙のムラ（インクのしみ込みやすさ）。大きなムラ＋細かい粒を、あらかじめ作っておく
+  function makePaper() {
+    const n = new Float32Array(FW * FH), cs = 10, gw = Math.ceil(FW / cs) + 2, gh = Math.ceil(FH / cs) + 2;
+    const grid = Float32Array.from({ length: gw * gh }, () => Math.random());
+    for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) {
+      const gx = x / cs, gy = y / cs, ix = gx | 0, iy = gy | 0, fx = gx - ix, fy = gy - iy;
+      const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+      const a = grid[iy * gw + ix], b = grid[iy * gw + ix + 1], c = grid[(iy + 1) * gw + ix], d = grid[(iy + 1) * gw + ix + 1];
+      const coarse = lerp(lerp(a, b, sx), lerp(c, d, sx), sy);
+      n[y * FW + x] = coarse * 0.75 + Math.random() * 0.25;   // 0〜1
+    }
+    return n;
+  }
   function targets(text) {
     const off = document.createElement("canvas");
     off.width = W; off.height = H;
     const o = off.getContext("2d");
     const chars = [...text].length;
-    const vertical = W < 700;              // スマホでは2行に分けて大きく
-    const lines = vertical && chars > 4 ? [text.slice(0, Math.ceil(chars / 2)), text.slice(Math.ceil(chars / 2))] : [text];
+    const narrow = W < 700;              // スマホでは2行に分けて大きく
+    const lines = narrow && chars > 4 ? [text.slice(0, Math.ceil(chars / 2)), text.slice(Math.ceil(chars / 2))] : [text];
     const longest = Math.max(...lines.map((l) => [...l].length));
-    const fs = Math.min((W * 0.88) / longest, (H * (vertical ? 0.26 : 0.42)));
+    const fs = Math.min((W * 0.88) / longest, (H * (narrow ? 0.26 : 0.42)));
     o.font = `900 ${fs}px "Zen Old Mincho", serif`;
     o.textAlign = "center"; o.textBaseline = "middle"; o.fillStyle = "#000";
-    lines.forEach((l, k) => o.fillText(l, W / 2, H * 0.47 + (k - (lines.length - 1) / 2) * fs * 1.05));
-    step = Math.max(4, Math.round(fs / (isTouch ? 15 : 19)));
+    let endX = 0, endY = 0;
+    lines.forEach((l, k) => {
+      const y = H * 0.47 + (k - (lines.length - 1) / 2) * fs * 1.05;
+      o.fillText(l, W / 2, y);
+      endX = W / 2 + o.measureText(l).width / 2; endY = y;
+    });
+    step = Math.max(3, Math.round(fs / (isTouch ? 24 : 32)));
+    sprites = makeSprites(step * 1.3 * S);
     const data = o.getImageData(0, 0, W, H).data, pts = [];
-    for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) if (data[(y * W + x) * 4 + 3] > 140) pts.push([x, y]);
-    return pts;
+    const j = () => (Math.random() - 0.5) * step * 0.8;
+    for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) if (data[(y * W + x) * 4 + 3] > 120) pts.push([x + j(), y + j()]);
+    // 文末に、朱色のインクで句点（。）を一滴
+    const acc = [], rr = fs * 0.06, cx = Math.min(W - rr - 8, endX + fs * 0.2), cy = endY + fs * 0.3;
+    for (let y = -rr; y <= rr; y += step) for (let x = -rr; x <= rr; x += step) if (x * x + y * y <= rr * rr) acc.push([cx + x + j(), cy + y + j()]);
+    return { pts, acc };
   }
-  function setPhrase(scatter) {
-    const pts = targets(phrases[p]);
+  function setPhrase(scatter, bloom) {
+    const { pts, acc } = targets(phrases[p]);
     phraseEl.textContent = phrases[p];
-    // 粒の数を目的地の数に合わせる（足りなければ画面の外から追加）
-    while (parts.length < pts.length) parts.push({ x: Math.random() * W, y: H + Math.random() * 200, vx: 0, vy: 0, tx: 0, ty: 0, hot: Math.random() < 0.09 });
-    parts.length = Math.max(pts.length, 1);
-    pts.sort(() => Math.random() - 0.5).forEach((pt, k) => { parts[k].tx = pt[0]; parts[k].ty = pt[1]; });
-    if (scatter) parts.forEach((q) => { const a = Math.random() * Math.PI * 2, s = 8 + Math.random() * 22; q.vx += Math.cos(a) * s; q.vy += Math.sin(a) * s; });
+    const total = pts.length + acc.length;
+    const cx = W / 2, cy = H * 0.47;
+    while (parts.length < total) parts.push({
+      x: bloom ? cx + (Math.random() - 0.5) * 30 : Math.random() * W, y: bloom ? cy + (Math.random() - 0.5) * 30 : -40 - Math.random() * 200,
+      vx: 0, vy: 0, tx: 0, ty: 0, hot: false,
+    });
+    parts.length = Math.max(total, 1);
+    // 先頭の粒を朱色の句点に、残りを墨の文字に割り当てる
+    acc.forEach((pt, k) => { const q = parts[k]; q.hot = true; q.tx = pt[0]; q.ty = pt[1]; });
+    pts.sort(() => Math.random() - 0.5).forEach((pt, k) => { const q = parts[acc.length + k]; q.hot = false; q.tx = pt[0]; q.ty = pt[1]; });
+    if (scatter) parts.forEach((q) => { const a = Math.random() * Math.PI * 2, s = 6 + Math.random() * 18; q.vx += Math.cos(a) * s; q.vy += Math.sin(a) * s - 4; });
     if (isPaused()) { parts.forEach((q) => { q.x = q.tx; q.y = q.ty; }); draw(); }
   }
-  function resize() {
+  function resize(bloom) {
     dpr = Math.min(devicePixelRatio || 1, 2);
     W = cvs.clientWidth; H = cvs.clientHeight;
     cvs.width = W * dpr; cvs.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    S = Math.min(W > 900 ? 0.7 : 0.6, Math.sqrt(600000 / (W * H)));   // 大きな画面でも計算量が増えすぎないように
+    FW = Math.ceil(W * S); FH = Math.ceil(H * S);
+    field.width = out.width = FW; field.height = out.height = FH;
+    img = octx.createImageData(FW, FH);
+    paper = makePaper();
     readColors();
-    setPhrase(false);
+    setPhrase(false, bloom);
   }
+  // 滴の濃さ → インクの色と透明度に変換
   function draw() {
+    if (!sprites || !img) return;                   // 準備が終わる前は描かない
+    fctx.globalCompositeOperation = "source-over";
+    fctx.clearRect(0, 0, FW, FH);
+    fctx.globalCompositeOperation = "lighter";      // 重なった滴は濃さが足し算される
+    const r = sprites.r;
+    for (const q of parts) fctx.drawImage(q.hot ? sprites.acc : sprites.ink, q.x * S - r, q.y * S - r);
+    const d = fctx.getImageData(0, 0, FW, FH).data, o = img.data;
+    const [ir, ig, ib] = ink, [ar, ag, ab] = accent;
+    for (let k = 0, i = 0; k < paper.length; k++, i += 4) {
+      const fi = d[i], fa = d[i + 1];
+      if (fi < 90 && fa < 90) { o[i + 3] = 0; continue; }
+      const n = paper[k];
+      const t = 128 + (n - 0.5) * 44;                  // 紙のムラでしきい値を揺らす → 輪郭がにじむ
+      // しきい値の前後をなめらかにつなぐ（smoothstep）
+      let ai = clamp((fi - t + 13) / 26, 0, 1); ai = ai * ai * (3 - 2 * ai);
+      let aa = clamp((fa - t + 13) / 26, 0, 1); aa = aa * aa * (3 - 2 * aa);
+      // 縁は濃く、中央は少し薄く（乾いたインクの縁取り）。紙の粒でかすれも足す
+      const rimI = 1 - clamp((fi - t) / 140, 0, 1) * 0.1, rimA = 1 - clamp((fa - t) / 140, 0, 1) * 0.12;
+      const grain = 0.93 + n * 0.07;
+      ai *= rimI * grain; aa *= rimA * grain;
+      const a = ai + aa * (1 - ai);
+      if (a <= 0.003) { o[i + 3] = 0; continue; }
+      const wa = aa * (1 - ai) / a, wi = ai / a;
+      o[i] = ir * wi + ar * wa; o[i + 1] = ig * wi + ag * wa; o[i + 2] = ib * wi + ab * wa; o[i + 3] = a * 255;
+    }
+    octx.putImageData(img, 0, 0);
     ctx.clearRect(0, 0, W, H);
-    const s = step * 0.62;
-    ctx.fillStyle = ink;
-    for (const q of parts) if (!q.hot) ctx.fillRect(q.x - s / 2, q.y - s / 2, s, s);
-    ctx.fillStyle = accent;
-    for (const q of parts) if (q.hot) ctx.fillRect(q.x - s / 2, q.y - s / 2, s, s);
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(out, 0, 0, W, H);
   }
   function tick(now) {
     if (!running) return;
-    const dt = Math.min(2, (now - last) / 16.7 || 1); last = now;
-    const r = cvs.getBoundingClientRect();
-    const mx = mouse.x - r.left, my = mouse.y - r.top, R = isTouch ? 70 : 110;
+    const dt = Math.min(2, (now - last) / 16.7 || 1); last = now; frameNo++;
+    const rect = cvs.getBoundingClientRect();
+    const mx = mouse.x - rect.left, my = mouse.y - rect.top, R = isTouch ? 70 : 105;
+    mvel.x = lerp(mvel.x, mx - mvel.px, 0.5); mvel.y = lerp(mvel.y, my - mvel.py, 0.5); mvel.px = mx; mvel.py = my;
+    // ときどき、文字の下側から小さな滴が垂れる
+    if (frameNo % 50 === 0 && parts.length) { const q = parts[(Math.random() * parts.length) | 0]; q.vy += 2.5 + Math.random() * 2; }
     for (const q of parts) {
-      q.vx += (q.tx - q.x) * 0.055 * dt; q.vy += (q.ty - q.y) * 0.055 * dt;
+      const ox = q.tx - q.x, oy = q.ty - q.y;
+      q.vx += ox * 0.045 * dt; q.vy += oy * 0.045 * dt;
+      const away = Math.min(1, Math.hypot(ox, oy) / 30);
+      q.vy += 0.5 * away * dt;                         // 形から離れた滴ほど、重力で垂れる
       if (mouse.active) {
         const dx = q.x - mx, dy = q.y - my, d2 = dx * dx + dy * dy;
-        if (d2 < R * R) { const d = Math.sqrt(d2) || 1, f = ((R - d) / R) * 5 * dt; q.vx += (dx / d) * f; q.vy += (dy / d) * f; }
+        if (d2 < R * R) {
+          const d = Math.sqrt(d2) || 1, f = (R - d) / R;
+          // 押しのける力＋マウスの動いた向きに引きずる力（濡れたインクを指でこするように）
+          q.vx += ((dx / d) * 2.2 + mvel.x * 0.32) * f * dt;
+          q.vy += ((dy / d) * 2.2 + mvel.y * 0.32) * f * dt;
+        }
       }
-      q.vx *= 0.8; q.vy *= 0.8; q.x += q.vx * dt; q.y += q.vy * dt;
+      q.vx *= 0.84; q.vy *= 0.84; q.x += q.vx * dt; q.y += q.vy * dt;
     }
     draw();
     requestAnimationFrame(tick);
   }
   function start() { if (running || isPaused()) return; running = true; last = performance.now(); requestAnimationFrame(tick); }
   function stop() { running = false; }
-  function next() { p = (p + 1) % phrases.length; setPhrase(!isPaused()); restartTimer(); }
-  function restartTimer() { clearInterval(timer); if (!isPaused()) timer = setInterval(next, 7000); }
+  function next() { p = (p + 1) % phrases.length; setPhrase(!isPaused(), false); restartTimer(); }
+  function restartTimer() { clearInterval(timer); if (!isPaused()) timer = setInterval(next, 8000); }
   // 画面に見えている間だけ動かす（電池と処理の節約）
   new IntersectionObserver(([e]) => { if (e.isIntersecting) start(); else stop(); }).observe(cvs);
   cvs.addEventListener("click", next);
   $("#hero-next").addEventListener("click", next);
   pauseListeners.push((paused) => { if (paused) { stop(); parts.forEach((q) => { q.x = q.tx; q.y = q.ty; }); draw(); clearInterval(timer); } else { start(); restartTimer(); } });
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { readColors(); draw(); });
-  let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(resize, 150); });
-  return { init() { resize(); restartTimer(); start(); } };
+  let rt, lastW = 0;
+  addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if (cvs.clientWidth !== lastW) { lastW = cvs.clientWidth; resize(false); } }, 150); });
+  // 最初は、一滴のインクが落ちて文字の形に広がる
+  return { init() { lastW = cvs.clientWidth; resize(true); if (isPaused()) draw(); restartTimer(); start(); } };
 })();
 
 // ============================

@@ -93,7 +93,7 @@ button { font: inherit; color: inherit; }
 
 /* ============ ファーストビュー ============ */
 .hero { position: relative; height: 100svh; min-height: 620px; overflow: hidden; }
-.hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: pan-y; }
+.hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: pan-y; filter: blur(.4px); }  /* ごく弱くぼかして、インクの輪郭のギザつきを消す */
 .hero-top { position: absolute; left: var(--gutter); right: var(--gutter); top: 96px; display: flex; justify-content: space-between; gap: 16px; pointer-events: none; }
 .hero-title {
   position: absolute; left: var(--gutter); bottom: calc(var(--gutter) + 150px); margin: 0;
@@ -324,3 +324,70 @@ button { font: inherit; color: inherit; }
   html { scroll-behavior: auto; }
 }
 .pgroup .row-company { display: none; }
+
+/* ============================
+   シズル感：紙とインクの質感
+   ・--grain   細かい粒（紙の繊維・印刷のざらつき）
+   ・--mottle  ゆるやかなムラ（漉いた紙の厚みの差）
+   ・--fiber   横に流れる細い繊維
+   どれもSVGの「ノイズ」を画像として使っていて、外部の画像ファイルは不要
+   ============================ */
+:root {
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.4 -.45'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --mottle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.00889' numOctaves='4' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .27 0 0 0 .34 -.1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E");
+  --fiber: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.01 .2' numOctaves='3' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .34 0 0 0 0 .26 0 0 0 1.3 -.85'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  --torn: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 30' preserveAspectRatio='none'%3E%3Cpath d='M0%2030%20L0%2011.0%20L14.956358177287935%2020.5%20L28.40675929888431%2012.2%20L43.80491656048266%205.7%20L57.99545478515155%2014.6%20L76.6830847454708%203.9%20L87.5375049474632%203.8%20L106.49181749733805%2015.9%20L113.16190287925558%2021.6%20L134.59802737726466%2015.1%20L150.44703065052178%205.1%20L156.68704244171545%2012.6%20L163.63986012441714%205.8%20L173.5109483430606%202.6%20L186.93389972263316%2010.8%20L206.41273377892966%2012.4%20L222.6574011056365%2012.0%20L239.2565936158824%2011.1%20L249.70720001050458%2022.0%20L271.63826627700377%2018.8%20L288.963220220971%208.3%20L298.63787464669747%207.8%20L305.7614506396563%2017.3%20L318.1678475183521%2018.9%20L330.35206402564705%2021.2%20L349.9090203984919%202.0%20L359.2644990341657%2020.2%20L372.7842954503843%2021.6%20L385.1430856596528%203.5%20L401.2143642553972%2017.6%20L411.53077364499944%203.7%20L422.852143652413%2021.3%20L440.98079192431317%204.4%20L450.92299910660324%204.0%20L457.8812935536605%2017.9%20L466.72414360483435%2013.2%20L479.8829416448507%205.8%20L497.5932490962803%204.6%20L513.892691075659%204.3%20L526.6247809516017%206.3%20L536.9415005866513%2021.4%20L555.7960846359645%208.1%20L575.953926439948%206.2%20L588.2623206331008%2019.1%20L604.5316911385481%204.0%20L626.3605182987109%206.3%20L636.4929592244968%2017.5%20L647.7562460332605%207.9%20L654.9306228874752%203.8%20L670.254379658156%206.9%20L685.8749211554671%209.4%20L699.1262508310487%2021.2%20L712.8658433632494%2013.5%20L732.7302540480849%205.7%20L741.1964191509019%2020.2%20L760.2812503422563%207.0%20L769.3180609976685%2016.8%20L790.3645393351866%205.9%20L811.566712972125%2019.6%20L827.22326040866%2010.4%20L834.8846953104992%202.8%20L856.287599493789%206.8%20L873.560870862723%207.1%20L892.7403564108407%2013.9%20L903.4353219545965%205.5%20L920.9609751949408%203.4%20L930.6153165921428%2013.2%20L950.2537145976129%2014.3%20L960.7372248787466%2020.3%20L970.0008869486616%202.3%20L980.307989797123%2010.9%20L987.2752790120438%205.5%20L999.1758449380001%2013.4%20L1007.2811012680362%209.2%20L1027.536144947553%2021.6%20L1044.0470576917062%2015.8%20L1059.398101982589%204.8%20L1065.9593905686795%202.4%20L1086.5227898069645%2016.0%20L1107.9271260250287%202.4%20L1124.1060783702608%2011.6%20L1141.7940460653854%208.4%20L1163.7837680874934%203.5%20L1178.5212938328584%2016.7%20L1198.9244279328484%2016.7%20L1200%2012%20L1200%2030%20Z'/%3E%3C/svg%3E");
+}
+
+/* 紙：画面全体に、ムラと繊維を「掛け合わせ（multiply）」で重ねる。文字にもかかるので、刷った紙のように見える */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 120; pointer-events: none;
+  background-image: var(--mottle), var(--fiber);
+  background-size: 900px 900px, 700px 700px;
+  mix-blend-mode: multiply; opacity: .4;
+}
+/* フィルムの粒子：少しずつ位置をずらして、かすかにちらつかせる */
+body::after {
+  content: ""; position: fixed; inset: -60px; z-index: 121; pointer-events: none;
+  background-image: var(--grain); background-size: 240px 240px;
+  mix-blend-mode: multiply; opacity: .16;
+  animation: grain 1s steps(6) infinite;
+}
+@keyframes grain {
+  0% { transform: translate(0, 0); } 20% { transform: translate(-22px, 14px); } 40% { transform: translate(18px, -26px); }
+  60% { transform: translate(-30px, -8px); } 80% { transform: translate(12px, 28px); } 100% { transform: translate(0, 0); }
+}
+.motion-paused body::after { animation: none; }
+@media (prefers-reduced-motion: reduce) { body::after { animation: none; } }
+@media (prefers-color-scheme: dark) {
+  body::before { mix-blend-mode: screen; opacity: .18; }
+  body::after { mix-blend-mode: screen; opacity: .12; filter: invert(1); }
+}
+.cursor { z-index: 170; }
+.loader { z-index: 150; }
+
+/* 朱色の面：インクのムラとざらつきを足す */
+.marquee, .contact, .row-btn::before, .lock-body, .cursor {
+  background-image: var(--grain), var(--mottle);
+  background-size: 240px 240px, 900px 900px;
+  background-blend-mode: multiply;
+}
+.process { background-image: var(--grain); background-size: 240px 240px; background-blend-mode: screen; }
+.detail { background-image: var(--mottle), var(--fiber); background-size: 900px 900px, 700px 700px; background-blend-mode: multiply; }
+
+/* お問い合わせの面：上端を、手でちぎった紙のように */
+.contact { position: relative; overflow: visible; }
+.contact::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -22px; height: 24px;
+  background: inherit; background-color: var(--accent);
+  -webkit-mask: var(--torn) 0 0 / 100% 100% no-repeat; mask: var(--torn) 0 0 / 100% 100% no-repeat;
+}
+.contact-big { overflow: hidden; }
+
+/* 大きな見出し：インクが紙に少しにじんだように */
+.sec-title .en, .contact-big, .about-vertical, .statement-text, .loader-count {
+  text-shadow: 0 0 .6px currentColor, .4px .3px 0 color-mix(in srgb, currentColor 35%, transparent);
+}
+
+/* クリックしたところに飛ぶインク */
+.splat { position: fixed; left: 0; top: 0; z-index: 165; pointer-events: none; border-radius: 50%; }
