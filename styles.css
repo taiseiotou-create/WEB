@@ -343,7 +343,7 @@ button { font: inherit; color: inherit; }
 body::before {
   content: ""; position: fixed; inset: 0; z-index: 120; pointer-events: none;
   background-image: var(--mottle), var(--fiber);
-  background-size: 900px 900px, 700px 700px;
+  background-size: 100% 100%, 700px 700px;
   mix-blend-mode: multiply; opacity: .4;
 }
 /* フィルムの粒子：少しずつ位置をずらして、かすかにちらつかせる */
@@ -368,12 +368,12 @@ body::after {
 
 /* 朱色の面：インクのムラとざらつきを足す */
 .marquee, .contact, .row-btn::before, .lock-body, .cursor {
-  background-image: var(--grain), var(--mottle);
-  background-size: 240px 240px, 900px 900px;
+  background-image: var(--mottle);
+  background-size: 100% 100%;
   background-blend-mode: multiply;
 }
 .process { background-image: var(--grain); background-size: 240px 240px; background-blend-mode: screen; }
-.detail { background-image: var(--mottle), var(--fiber); background-size: 900px 900px, 700px 700px; background-blend-mode: multiply; }
+.detail { background-image: var(--mottle), var(--fiber); background-size: 100% 100%, 700px 700px; background-blend-mode: multiply; }
 
 /* お問い合わせの面：上端を、手でちぎった紙のように */
 .contact { position: relative; overflow: visible; }
