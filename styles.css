@@ -94,6 +94,12 @@ button { font: inherit; color: inherit; }
 /* ============ ファーストビュー ============ */
 .hero { position: relative; height: 100svh; min-height: 620px; overflow: hidden; -webkit-user-select: none; user-select: none; }  /* 続けてクリックしても文字が選択されて帯が出ないように */
 .hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: pan-y; }
+/* 印鑑「剛志」：点が集まりきったら、少し傾けてポンと押す */
+.hero-seal { position: absolute; pointer-events: none; opacity: 0; transform: rotate(-4deg) scale(1.3); mix-blend-mode: multiply; }
+.hero-seal.is-on { animation: stamp .55s cubic-bezier(.3, 1.5, .5, 1) forwards; }
+.hero-seal.no-anim { animation: none; opacity: .95; transform: rotate(-4deg); }
+@keyframes stamp { 0% { opacity: 0; transform: rotate(-4deg) scale(1.3); } 45% { opacity: .95; transform: rotate(-4deg) scale(.96); } 100% { opacity: .95; transform: rotate(-4deg) scale(1); } }
+@media (prefers-color-scheme: dark) { .hero-seal { mix-blend-mode: screen; } }
 .hero-top { position: absolute; left: var(--gutter); right: var(--gutter); top: 96px; display: flex; justify-content: space-between; gap: 16px; pointer-events: none; }
 .hero-title {
   position: absolute; left: var(--gutter); bottom: calc(var(--gutter) + 150px); margin: 0;
