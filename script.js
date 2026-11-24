@@ -241,9 +241,9 @@ $$(".magnetic, .hero-hint, .seg").forEach((el) => {
 });
 
 // ============================
-// ファーストビュー：墨の点が集まって、文字になる
+// ファーストビュー：墨の点が集まって、文字になる（明朝体を網点のように点で組む）
 //   「いろいろな要素を集めて、整える」——デザインの仕事そのものを、トップの動きで表す
-//   1) 毛筆書体の文字を見えないキャンバスに描き、その形の上に点の置き場所を決める
+//   1) 明朝体の文字を見えないキャンバスに描き、その形の上に点の置き場所を決める
 //      （線の太い所は大きな点、細い所や端は小さな点＝網点のように）
 //   2) 画面に散らばった墨の点が、一つずつ飛んできて置き場所に収まる
 //   3) 点は1粒ずつGPU（画像処理用の部品）で描く：いびつな輪郭、紙の繊維に沿ったにじみ、
@@ -253,7 +253,7 @@ $$(".magnetic, .hero-hint, .seg").forEach((el) => {
 //   ※ WebGL が使えない環境では、普通の円で点を描く
 // ============================
 const phrases = ["伝わるかたち", "選ばれる理由", "心が動く仕掛け", "届く言葉"];
-const BRUSH_FONT = '"Yuji Boku", "Zen Old Mincho", serif';
+const DOT_FONT = '"Shippori Mincho B1", "Zen Old Mincho", serif';   // 太さの強弱が美しい明朝体
 const hero = (() => {
   const cvs = $("#hero-canvas");
   const phraseEl = $("#hero-phrase");
@@ -275,8 +275,8 @@ const hero = (() => {
     const L = layout(text); fs = L.fs;
     const c = document.createElement("canvas"); c.width = W; c.height = H;
     const o = c.getContext("2d");
-    o.font = `400 ${fs}px ${BRUSH_FONT}`; o.textBaseline = "middle"; o.fillStyle = o.strokeStyle = "#000";
-    o.lineWidth = fs * 0.03; o.lineJoin = "round";
+    o.font = `800 ${fs}px ${DOT_FONT}`; o.textBaseline = "middle"; o.fillStyle = o.strokeStyle = "#000";
+    o.lineWidth = fs * 0.012; o.lineJoin = "round";   // 細い線にも点がのるよう、ごくわずかに太らせる
     L.lines.forEach((l, k) => {
       const total = o.measureText(l.join("")).width;
       let x = W / 2 - total / 2;
@@ -291,14 +291,14 @@ const hero = (() => {
       for (let k = 1; k <= 6; k++) { const d = k * st; n += inside(x + d, y) + inside(x - d, y) + inside(x, y + d) + inside(x, y - d); }
       return n / 24;
     };
-    const g = fs / 21, pts = [];
+    const g = fs / 34, pts = [];   // 点の間隔。細かいほど明朝体の入りや払いまで表せる
     for (let y = g / 2; y < H; y += g * 0.86) {
       for (let x = ((y / g) & 1 ? g / 2 : 0); x < W; x += g) {
-        const jx = x + (Math.random() - 0.5) * g * 0.5, jy = y + (Math.random() - 0.5) * g * 0.5;
+        const jx = x + (Math.random() - 0.5) * g * 0.4, jy = y + (Math.random() - 0.5) * g * 0.4;
         if (!inside(jx, jy)) continue;
         const t = thick(jx, jy);
-        const big = Math.random() < 0.06 ? 1.55 : 1;   // ところどころ大きな墨の滴
-        pts.push({ x: jx, y: jy, r: g * (0.3 + 0.4 * t) * (0.7 + Math.random() * 0.6) * big });
+        const big = Math.random() < 0.03 ? 1.5 : 1;   // ところどころ大きな墨の滴
+        pts.push({ x: jx, y: jy, r: g * (0.24 + 0.62 * t) * (0.8 + Math.random() * 0.4) * big });   // 細い線は小さな点、太い線は大きな点
       }
     }
     // まとまりきらない点：文字のまわりに少しだけ
@@ -399,7 +399,7 @@ const hero = (() => {
       float edge = 1. + .16 * (noise(ac * 1.6 + seed) - .5) + .08 * (noise(ac * 4.5 + seed * 2.) - .5);
       // にじみ：紙の繊維に沿って、放射状にしみ出す
       float fib = fbm(vec2(ang * 7. + seed, r * 2.5 + seed));
-      float reach = edge + spread * (.22 + .7 * fib * fib);
+      float reach = edge + spread * (.12 + .45 * fib * fib);
       float core = 1. - smoothstep(edge - .05, edge + .05, r);
       float halo = (1. - smoothstep(edge, reach, r)) * (1. - core);
       // 濃淡：縁は墨だまりで濃く、内側は少し薄い。紙の凹凸で細かくムラが出る
@@ -462,34 +462,78 @@ const hero = (() => {
 
   // ---------- 印鑑「剛志」 ----------
   function makeSeal() {
-    const size = 220, c = sealEl, o = c.getContext("2d"), px = size * 2;   // 2倍の細かさで描いて、くっきりさせる
+    // 九畳篆（きゅうじょうてん）風：文字を方眼の升目に組み替え、四角い枠いっぱいに詰めた陽刻の印影
+    const size = 240, px = size * 2, c = sealEl, o = c.getContext("2d");
     c.width = c.height = px;
+    const red = [196, 46, 26];
+    // 1) 文字の形を升目に置き換える（升目ごとに、墨の割合が多ければ塗る）
+    const N = 21;                                      // 1文字あたりの升目の数（横）。細かいほど線が細く折れ曲がる
+    const glyphGrid = (ch, cols, rows) => {
+      // 大きく描いた文字の、実際に墨がある範囲を測り、升目の範囲いっぱいに合わせる
+      const big = document.createElement("canvas"); big.width = big.height = 400;
+      const bo = big.getContext("2d");
+      bo.font = `500 320px "Zen Kaku Gothic New", sans-serif`; bo.textAlign = "center"; bo.textBaseline = "middle";
+      bo.fillText(ch, 200, 210);
+      const bd = bo.getImageData(0, 0, 400, 400).data;
+      let x0 = 400, y0 = 400, x1 = 0, y1 = 0;
+      for (let y = 0; y < 400; y++) for (let x = 0; x < 400; x++) if (bd[(y * 400 + x) * 4 + 3] > 100) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+      const g = document.createElement("canvas"); g.width = cols * 20; g.height = rows * 20;
+      const go = g.getContext("2d");
+      go.drawImage(big, x0, y0, x1 - x0 + 1, y1 - y0 + 1, 0, 0, g.width, g.height);
+      const d = go.getImageData(0, 0, g.width, g.height).data, cells = [];
+      for (let r = 0; r < rows; r++) for (let q = 0; q < cols; q++) {
+        let n = 0;
+        for (let y = 0; y < 20; y += 2) for (let x = 0; x < 20; x += 2) n += d[((r * 20 + y) * g.width + q * 20 + x) * 4 + 3] > 110;
+        cells.push(n / 100 > 0.24);
+      }
+      return cells;
+    };
+    const m = 16, frame = 15, inner = size - (m + frame) * 2, gap = 6;
+    const cols = N, rows = Math.round(N * 0.5);        // 縦に2文字なので、1文字は横長の升目
+    const cw = (inner - gap * 2) / cols, ch = (inner - gap * 3) / (rows * 2);
+    const top = glyphGrid("剛", cols, rows), bottom = glyphGrid("志", cols, rows);
+    // 2) 描く（2倍の細かさ）
     o.setTransform(2, 0, 0, 2, 0, 0);
     o.clearRect(0, 0, size, size);
-    const red = "#c8351c", m = 14, rad = 34, lw = 7;
-    o.strokeStyle = o.fillStyle = red;
-    // 角の丸い四角の枠
-    o.lineWidth = lw;
-    o.beginPath(); o.roundRect ? o.roundRect(m, m, size - m * 2, size - m * 2, rad) : o.rect(m, m, size - m * 2, size - m * 2); o.stroke();
-    // 枠の右上を少し切って、そこに朱の点をひとつ（点が集まるトップのテーマとつなげる）
-    o.save(); o.globalCompositeOperation = "destination-out"; o.beginPath(); o.arc(size - m - rad * 0.32, m + rad * 0.32, 22, 0, Math.PI * 2); o.fill(); o.restore();
-    o.beginPath(); o.arc(size - m - rad * 0.32, m + rad * 0.32, 9, 0, Math.PI * 2); o.fill();
-    // 文字：上に「剛」、下に「志」。太い書体で枠いっぱいに組む
-    o.font = `900 104px "Zen Old Mincho", serif`; o.textAlign = "center"; o.textBaseline = "middle";
-    const put = (ch, cy) => { o.save(); o.translate(size / 2, cy); o.scale(1.12, 0.9); o.fillText(ch, 0, 0); o.restore(); };
-    put("剛", 69); put("志", 153);
-    // 朱肉のムラ・かすれ・欠け：画素ごとに濃さを揺らす
+    o.fillStyle = `rgb(${red})`;
+    // 太い外枠（角はわずかに丸く）
+    const rr = 10;
+    o.beginPath(); o.roundRect ? o.roundRect(m, m, size - m * 2, size - m * 2, rr) : o.rect(m, m, size - m * 2, size - m * 2);
+    o.roundRect ? o.roundRect(m + frame, m + frame, inner, inner, 3) : o.rect(m + frame, m + frame, inner, inner);
+    o.fill("evenodd");
+    // 升目の文字
+    const x0 = m + frame + gap, y0 = m + frame + gap;
+    const drawCells = (cells, oy) => {
+      cells.forEach((on, k) => {
+        if (!on) return;
+        const q = k % cols, r = (k / cols) | 0;
+        o.fillRect(x0 + q * cw - 0.3, oy + r * ch - 0.3, cw + 0.6, ch + 0.6);   // 隣の升目とつながるよう少し重ねる
+      });
+    };
+    drawCells(top, y0);
+    drawCells(bottom, y0 + rows * ch + gap);
+    // 上下の文字の間に細い仕切り線
+    o.fillRect(x0, y0 + rows * ch + gap * 0.5 - 1, inner - gap * 2, 2);
+    // 3) 朱肉の質感：押しムラ、紙の凹凸でのかすれ、縁の欠け、わずかなにじみ
+    o.setTransform(1, 0, 0, 1, 0, 0);
     const img = o.getImageData(0, 0, px, px), d = img.data;
-    const cs = 32, gw = Math.ceil(px / cs) + 2, grid = Float32Array.from({ length: gw * gw }, () => Math.random());
-    const vn = (x, y) => { const gx = x / cs, gy = y / cs, ix = gx | 0, iy = gy | 0, fx = gx - ix, fy = gy - iy;
-      const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
-      return lerp(lerp(grid[iy * gw + ix], grid[iy * gw + ix + 1], sx), lerp(grid[(iy + 1) * gw + ix], grid[(iy + 1) * gw + ix + 1], sx), sy); };
+    const vnoise = (cs) => {
+      const gw = Math.ceil(px / cs) + 2, grid = Float32Array.from({ length: gw * gw }, () => Math.random());
+      return (x, y) => { const gx = x / cs, gy = y / cs, ix = gx | 0, iy = gy | 0, fx = gx - ix, fy = gy - iy;
+        const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+        return lerp(lerp(grid[iy * gw + ix], grid[iy * gw + ix + 1], sx), lerp(grid[(iy + 1) * gw + ix], grid[(iy + 1) * gw + ix + 1], sx), sy); };
+    };
+    const big = vnoise(70), mid = vnoise(18), fine = vnoise(4);
     for (let y = 0; y < px; y++) for (let x = 0; x < px; x++) {
       const i = (y * px + x) * 4; if (!d[i + 3]) continue;
-      const press = clamp((vn(x, y) * 0.75 + Math.random() * 0.35 - 0.18) * 2.2, 0, 1);
-      const chip = Math.random() < 0.025 ? 0 : 1;   // ところどころ朱肉がのらない
-      d[i + 3] = d[i + 3] * clamp(0.35 + press, 0, 1) * chip;
+      const edgeDist = Math.min(x, y, px - x, py(y)) ; // 外周からの距離
+      const press = big(x, y) * 0.55 + mid(x, y) * 0.3 + fine(x, y) * 0.25;   // 押す力のムラ
+      let a = clamp((press - 0.2) * 3.4, 0, 1);
+      if (edgeDist < 60) a *= clamp((mid(x + 400, y) * 0.9 + fine(x, y) * 0.5 - 0.25) * 2.5 + edgeDist / 60, 0, 1);   // 縁は欠けやすい
+      d[i + 3] = d[i + 3] * (0.25 + 0.75 * a) * (Math.random() < 0.015 ? 0.2 : 1);
+      d[i] = red[0]; d[i + 1] = red[1]; d[i + 2] = red[2];
     }
+    function py(y) { return px - y; }
     o.putImageData(img, 0, 0);
   }
   function placeSeal() {
@@ -732,8 +776,8 @@ tickClock(); setInterval(tickClock, 1000);
   await fontsReady;
   await Promise.all([
     document.fonts?.load?.('900 100px "Zen Old Mincho"', phrases.join("")),
-    document.fonts?.load?.('400 100px "Yuji Boku"', phrases.join("")),
-    document.fonts?.load?.('900 100px "Zen Old Mincho"', "剛志"),
+    document.fonts?.load?.('800 100px "Shippori Mincho B1"', phrases.join("")),
+    document.fonts?.load?.('700 100px "Zen Kaku Gothic New"', "剛志"),
   ]).catch(() => {});
   hero.init();
   setupReveal();
