@@ -15,7 +15,7 @@
 - 作品の追加・変更は `script.js` の `works` 配列を編集する（`image` に画像パス、`glyph` にポスターに描く1文字、`palette` にポスターの色）
 - 画像がない作品は、作品ごとにポスター（SVG）を自動生成して表示する
 - 主な動き: トップの粒でできたコピー（`phrases` 配列で言葉を変更。マウスでくずれ、クリックで組み変わる）
-- 質感: 紙は `images/paper.jpg`（`tools/make-paper.py` で生成する継ぎ目のない紙の凹凸画像）を `body::before`（overlay）と `body::after`（multiply）で全面に重ねている。濃さは各 opacity。作品ポスターは `index.html` の `#riso` フィルターでリソグラフ風に。クリックでインクが飛ぶ
+- 質感: 背景は白い紙。実際に撮影した紙の写真（ambientCG「Paper 001」、CC0。出典は `images/CREDITS.md`）を `tools/make-paper.py` で加工し、`images/paper-white.jpg` を `html` の背景に、凹凸だけの `images/paper.jpg` を `body::before`（overlay）で全面に重ねて黒・朱の面にも紙の質感をのせている。基本色は `:root` の `--paper`。作品ポスターは `index.html` の `#riso` フィルターでリソグラフ風に。クリックでインクが飛ぶ
 - デザインの参考調査は `docs/design-research.md`
 - `works` 配列は**公開作品だけ**（自主制作・個人のサイト）。`url` に公開URLを入れると詳細に「サイトを見る」リンクが出る
 - 会社員・業務委託の実績（広告代理店・マイナビ・アイドマ・ムスビ）は**非公開**。パスワードで暗号化した `private-works.js` に入っていて、サイトの「実務の実績」でIDとパスワードを入れた人だけが読める
